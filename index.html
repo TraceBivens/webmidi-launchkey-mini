@@ -47,6 +47,27 @@
     </style>
   </head>
   <body>
+    <label for="secDiv">sec/div:</label>
+    <select id="secDiv">
+      <option value="0.001">1 ms/div</option>
+      <option value="0.002">2 ms/div</option>
+      <option value="0.005">5 ms/div</option>
+      <option value="0.01">10 ms/div</option>
+      <option value="0.02">20 ms/div</option>
+      <option value="0.05">50 ms/div</option>
+      <option value="0.1">100 ms/div</option>
+    </select>
+    <label for="voltDiv">volt/div:</label>
+    <select id="voltDiv">
+      <option value="0.1">0.1 V/div</option>
+      <option value="0.2">0.2 V/div</option>
+      <option value="0.5">0.5 V/div</option>
+      <option value="1">1 V/div</option>
+      <option value="2">2 V/div</option>
+      <option value="5">5 V/div</option>
+    </select>
+    <br/>
+
     <canvas id="osc1" width="2400" height="300" style="width: 1200px; height: 150px;"></canvas>
 
     <div id="currentPatchName"></div>
