@@ -71,11 +71,6 @@
 
     <div id="renderedKeyboard"></div>
 
-    <div id="startupModal">
-      <p>Plug your MIDI instrument (if any), then click on the button.</p>
-      <button id="run">Start</button>
-    </div>
-
     <!-- "fork me on github" ribbon -->
     <a href="https://github.com/adrienjoly/webmidi-launchkey-mini"><p style="position: absolute; top: 0; right: 0; border: 0;">Fork me on GitHub</p></a>
 
@@ -102,50 +97,48 @@
       const patchNameDiv = document.getElementById('currentPatchName');
       const onPatchChange = ({ name, type }) => patchNameDiv.innerHTML = `Patch / waveform: ${name || type}`;
 
-      // just to activate WebAudio after a user gesture
-      document.getElementById('run').onclick = function() {
+      // Initialize application directly
+      // 1. Setup outputs
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        // 1. Setup outputs
+      // Forward declaration for notePlayer
+      let notePlayer; 
 
-        const audioContext = new (window.AudioContext || window.webkitAudioContext);
-  
-        const oscilloscope = initOscilloscope({
-          Scope,
-          audioContext,
-          canvas: document.querySelector('#osc1')
-        });
-        const synth = initSynth({ audioContext, onPatchChange }); // creates an audio context for one "channel"
-        const soundGenerator = initSoundGenerator({ SoundEffect });
-        const notePlayer = initNotePlayer({ synth, soundGenerator, oscilloscope });
-
-        // 2. Pipe MIDI messages to synth and UI
-        
-        const keyboardState = initLaunchkeyState();
-
-        function handleParsedMidiMessage(message) {
-          renderKeyboardUI(keyboardState.mutateFromParsedMidiMessage(message));
-          if (message.note) {
-            notePlayer.playParsedMidiMessage(message);
-          }
+      const oscilloscope = initOscilloscope({
+        Scope,
+        audioContext,
+        canvas: document.querySelector('#osc1'),
+        notePlayer: { // Provide a temporary getLastPlayedFrequency until notePlayer is initialized
+          getLastPlayedFrequency: () => null 
         }
+      });
+      const synth = initSynth({ audioContext, onPatchChange });
+      const soundGenerator = initSoundGenerator({ SoundEffect });
+      
+      // Initialize notePlayer and update oscilloscope with the actual notePlayer instance
+      notePlayer = initNotePlayer({ synth, soundGenerator, oscilloscope });
+      oscilloscope.setNotePlayer(notePlayer); // Assumes a new method setNotePlayer in oscilloscope
 
-        // 3. Setup and plug inputs
+      // 2. Pipe MIDI messages to synth and UI
+      const keyboardState = initLaunchkeyState();
 
-        const computerKeyboard = initKeyboardInput();
-        const midiKeyboard = initWebMidiReader();
+      function handleParsedMidiMessage(message) {
+        renderKeyboardUI(keyboardState.mutateFromParsedMidiMessage(message));
+        if (message.note) {
+          notePlayer.playParsedMidiMessage(message);
+        }
+      }
 
-        computerKeyboard.onKeyEvents((parsedMidiMessage) => handleParsedMidiMessage(parsedMidiMessage));
+      // 3. Setup and plug inputs
+      const computerKeyboard = initKeyboardInput();
+      const midiKeyboard = initWebMidiReader();
 
-        midiKeyboard.onMidiMessage((midiMessage) =>
-          handleParsedMidiMessage(midiKeyboard.parseMidiMessage(midiMessage))
-        );
+      computerKeyboard.onKeyEvents((parsedMidiMessage) => handleParsedMidiMessage(parsedMidiMessage));
 
-        // 4. Remove the startup modal
+      midiKeyboard.onMidiMessage((midiMessage) =>
+        handleParsedMidiMessage(midiKeyboard.parseMidiMessage(midiMessage))
+      );
 
-        const startupModal = document.getElementById('startupModal');
-        startupModal.parentNode.removeChild(startupModal);
-
-      };
     </script>
   </body>
 </html>

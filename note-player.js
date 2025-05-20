@@ -3,6 +3,7 @@
 function initNotePlayer({ synth, soundGenerator, oscilloscope }){
 
   const NOTES = [ 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' ];
+  let lastPlayedFrequency = null; // Added to store the last played frequency
 
   const padMapping = {
     36: () => soundGenerator.playSound('kick'),
@@ -33,6 +34,8 @@ function initNotePlayer({ synth, soundGenerator, oscilloscope }){
       stopNote({ note, channel });
       const octave = Math.floor(note / 12);
       const noteIdx = note % 12;
+      const freq = synth.getFrequency(NOTES[noteIdx], octave); // Get frequency
+      lastPlayedFrequency = freq; // Store the frequency
       const { oscillator, gainNode } = synth.playNote({ note: NOTES[noteIdx], octave, velocity });
 
       oscilloscope.connect(gainNode);
@@ -59,8 +62,14 @@ function initNotePlayer({ synth, soundGenerator, oscilloscope }){
     }
   };
 
+  // Function to get the last played frequency
+  function getLastPlayedFrequency() {
+    return lastPlayedFrequency;
+  }
+
   return {
-    playParsedMidiMessage
+    playParsedMidiMessage,
+    getLastPlayedFrequency // Expose the function
   };
   
 }
