@@ -49,6 +49,14 @@
   <body>
     <canvas id="osc1" width="2400" height="300" style="width: 1200px; height: 150px;"></canvas>
 
+    <div>
+      <label for="synthSelector">Synthesizer: </label>
+      <select id="synthSelector">
+        <option value="additive">Additive Synth (Fourier Demo)</option>
+        <option value="basic">Basic Synth (Waveforms)</option>
+      </select>
+    </div>
+
     <div id="currentPatchName"></div>
 
     <div id="renderedKeyboard"></div>
@@ -83,7 +91,12 @@
       renderKeyboardUI({}); // render with initial state
 
       const patchNameDiv = document.getElementById('currentPatchName');
-      const onPatchChange = ({ name, type }) => patchNameDiv.innerHTML = `Patch / waveform: ${name || type}`;
+      const onPatchChange = ({ name, type, description }) => {
+        patchNameDiv.innerHTML = `Patch / waveform: ${name || type}`;
+        if (description) {
+          patchNameDiv.innerHTML += `<br><small>${description}</small>`;
+        }
+      };
 
       // just to activate WebAudio after a user gesture
       document.getElementById('run').onclick = function() {
@@ -100,7 +113,32 @@
         const synth = initSynth({ audioContext, onPatchChange }); // creates an audio context for one "channel"
         const additiveSynth = initAdditiveSynth({ audioContext, onPatchChange });
         const soundGenerator = initSoundGenerator({ SoundEffect });
-        const notePlayer = initNotePlayer({ synth, additiveSynth, soundGenerator, oscilloscope });
+        
+        // Synth selector functionality
+        const synthSelector = document.getElementById('synthSelector');
+        let currentSynthType = 'additive'; // Default to additive for educational purposes
+        
+        const notePlayer = initNotePlayer({ 
+          synth, 
+          additiveSynth, 
+          soundGenerator, 
+          oscilloscope,
+          getCurrentSynthType: () => currentSynthType
+        });
+        
+        synthSelector.addEventListener('change', (e) => {
+          currentSynthType = e.target.value;
+          console.log('Switched to:', currentSynthType);
+          // Trigger patch change to update display
+          if (currentSynthType === 'additive') {
+            onPatchChange(additiveSynth.getPresetInfo());
+          } else {
+            onPatchChange({ name: 'Basic Synth', type: 'waveform' });
+          }
+        });
+        
+        // Initialize with additive synth display
+        onPatchChange(additiveSynth.getPresetInfo());
 
         // 2. Pipe MIDI messages to synth and UI
         
