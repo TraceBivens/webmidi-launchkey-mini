@@ -70,6 +70,7 @@
     <script src="lib/scope.js"></script>        <!-- imports Scope -->
     <script src="sound-generator.js"></script>  <!-- imports initSoundGenerator() -->
     <script src="synth.js"></script>            <!-- imports initSynth() -->
+    <script src="additive-synth.js"></script>   <!-- imports initAdditiveSynth() -->
     <script src="oscilloscope.js"></script>     <!-- imports initOscilloscope() -->
     <script src="note-player.js"></script>      <!-- imports initNotePlayer() -->
 
@@ -97,8 +98,9 @@
           canvas: document.querySelector('#osc1')
         });
         const synth = initSynth({ audioContext, onPatchChange }); // creates an audio context for one "channel"
+        const additiveSynth = initAdditiveSynth({ audioContext, onPatchChange });
         const soundGenerator = initSoundGenerator({ SoundEffect });
-        const notePlayer = initNotePlayer({ synth, soundGenerator, oscilloscope });
+        const notePlayer = initNotePlayer({ synth, additiveSynth, soundGenerator, oscilloscope });
 
         // 2. Pipe MIDI messages to synth and UI
         

@@ -1,6 +1,6 @@
 // Play tones and sounds when notes are triggered from a keyboard or MIDI input.
 
-function initNotePlayer({ synth, soundGenerator, oscilloscope }){
+function initNotePlayer({ synth, additiveSynth, soundGenerator, oscilloscope }){
 
   const NOTES = [ 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' ];
 
@@ -14,6 +14,8 @@ function initNotePlayer({ synth, soundGenerator, oscilloscope }){
   const commandMapping = {
     106: () => synth.switchPatch(-1),
     107: () => synth.switchPatch(),
+    104: () => additiveSynth.switchPreset(-1), // Scene up/down for additive synth
+    105: () => additiveSynth.switchPreset(),
   };
 
   const activeNotes = {};
@@ -29,11 +31,11 @@ function initNotePlayer({ synth, soundGenerator, oscilloscope }){
     if (channel === 10) {
       padMapping[note]({ velocity });
     } else {
-      // white and black keys
+      // white and black keys - use additive synth for educational demonstration
       stopNote({ note, channel });
       const octave = Math.floor(note / 12);
       const noteIdx = note % 12;
-      const { oscillator, gainNode } = synth.playNote({ note: NOTES[noteIdx], octave, velocity });
+      const { oscillator, gainNode } = additiveSynth.playNote({ note: NOTES[noteIdx], octave, velocity });
 
       oscilloscope.connect(gainNode);
 

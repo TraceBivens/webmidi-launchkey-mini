@@ -36,7 +36,7 @@ function initKeyboardRenderer() {
       notes: [ 36, 37, 38, 39, 44, 45, 46, 47 ],
       hotkeys: [ 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p' ],
       values: state.padNotes
-    }) + halfKey + renderBinKey({ note: state.playBottom ? '▶' : '' }) + halfKey + renderBinKey({ note: state.sceneNext ? '⬇' : '' }),
+    }) + halfKey + renderBinKey({ note: state.playBottom ? '▶' : '' }) + halfKey + renderBinKey({ note: state.sceneNext ? '⬇ Additive' : '' }),
     '<h4>Keys</h4>',
     halfKey + renderBlackNotes({
       notes: [ 49, 51, null, 54, 56, 58, null, 61, 63, null, 66, 68, 70 ],
