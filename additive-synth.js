@@ -3,49 +3,49 @@
 
 function initAdditiveSynth({ audioContext, onPatchChange }) {
 
-  const NUM_HARMONICS = 10;
+  const NUM_HARMONICS = 20;
   const NOTES = [ 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' ];
 
   // Predefined harmonic presets that demonstrate common waveforms
   const harmonicPresets = [
     {
       name: 'Fundamental Only',
-      harmonics: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      harmonics: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       description: 'Pure sine wave - single frequency component'
     },
     {
       name: 'Sawtooth (Fourier)',
-      harmonics: [1, 0.5, 0.33, 0.25, 0.2, 0.17, 0.14, 0.125, 0.11, 0.1],
+      harmonics: [1, 0.5, 0.33, 0.25, 0.2, 0.17, 0.14, 0.125, 0.11, 0.1, 0.09, 0.083, 0.077, 0.071, 0.067, 0.063, 0.059, 0.056, 0.053, 0.05],
       description: 'All harmonics with 1/n amplitude - creates sawtooth'
     },
     {
       name: 'Square Wave (Fourier)',
-      harmonics: [1, 0, 0.33, 0, 0.2, 0, 0.14, 0, 0.11, 0],
+      harmonics: [1, 0, 0.33, 0, 0.2, 0, 0.14, 0, 0.11, 0, 0.09, 0, 0.077, 0, 0.067, 0, 0.059, 0, 0.053, 0],
       description: 'Odd harmonics only with 1/n amplitude - creates square wave'
     },
     {
       name: 'Triangle (Fourier)',
-      harmonics: [1, 0, 0.11, 0, 0.04, 0, 0.02, 0, 0.012, 0],
+      harmonics: [1, 0, 0.11, 0, 0.04, 0, 0.02, 0, 0.012, 0, 0.008, 0, 0.006, 0, 0.004, 0, 0.003, 0, 0.003, 0],
       description: 'Odd harmonics with 1/n² amplitude - creates triangle'
     },
     {
       name: 'Organ-like',
-      harmonics: [0.8, 0.3, 0.6, 0.1, 0.4, 0.05, 0.2, 0.02, 0.1, 0.01],
+      harmonics: [0.8, 0.3, 0.6, 0.1, 0.4, 0.05, 0.2, 0.02, 0.1, 0.01, 0.05, 0.005, 0.02, 0.002, 0.01, 0.001, 0.005, 0, 0.002, 0],
       description: 'Strong fundamental and 3rd harmonic - organ timbre'
     },
     {
       name: 'Clarinet-like',
-      harmonics: [1, 0.1, 0.7, 0.05, 0.5, 0.02, 0.3, 0.01, 0.2, 0.005],
+      harmonics: [1, 0.1, 0.7, 0.05, 0.5, 0.02, 0.3, 0.01, 0.2, 0.005, 0.15, 0.002, 0.1, 0.001, 0.08, 0, 0.06, 0, 0.04, 0],
       description: 'Odd harmonics emphasized - clarinet-like timbre'
     },
     {
       name: 'Brass-like',
-      harmonics: [0.6, 0.8, 0.4, 0.6, 0.2, 0.4, 0.1, 0.2, 0.05, 0.1],
+      harmonics: [0.6, 0.8, 0.4, 0.6, 0.2, 0.4, 0.1, 0.2, 0.05, 0.1, 0.03, 0.08, 0.02, 0.06, 0.01, 0.04, 0.008, 0.03, 0.006, 0.02],
       description: 'Rich harmonic content - brass instrument timbre'
     },
     {
       name: 'Bell-like',
-      harmonics: [1, 0.2, 0.1, 0.8, 0.05, 0.02, 0.6, 0.01, 0.005, 0.4],
+      harmonics: [1, 0.2, 0.1, 0.8, 0.05, 0.02, 0.6, 0.01, 0.005, 0.4, 0.003, 0.02, 0.3, 0.001, 0.002, 0.2, 0.001, 0.001, 0.1, 0.0005],
       description: 'Inharmonic-like ratios - metallic bell sound'
     }
   ];
