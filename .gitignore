@@ -1,1 +1,6 @@
 .vscode
+.claude/
+.serena/
+*.md
+!README.md
+!OSCILLOSCOPE_COMPLETE_FIX.md
