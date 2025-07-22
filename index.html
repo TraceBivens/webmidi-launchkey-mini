@@ -492,6 +492,17 @@
                             additiveSynth.setHarmonic(i, amplitude);
                             valueDisplay.textContent =
                                 Math.round(amplitude * 100) + "%";
+
+                            // Update oscilloscope with new harmonic information for all active notes
+                            const newHarmonics = additiveSynth.getHarmonics();
+                            if (oscilloscope.activeNotes) {
+                                for (const noteId in oscilloscope.activeNotes) {
+                                    oscilloscope.updateNoteHarmonics(
+                                        noteId,
+                                        newHarmonics,
+                                    );
+                                }
+                            }
                         });
 
                         controlDiv.appendChild(slider);
@@ -516,6 +527,16 @@
                                     Math.round(amplitude * 100) + "%";
                             }
                         });
+
+                        // Update oscilloscope with new harmonic information for all active notes
+                        if (oscilloscope.activeNotes) {
+                            for (const noteId in oscilloscope.activeNotes) {
+                                oscilloscope.updateNoteHarmonics(
+                                    noteId,
+                                    harmonics,
+                                );
+                            }
+                        }
                     };
                 }
 

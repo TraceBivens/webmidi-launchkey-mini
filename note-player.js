@@ -1,22 +1,41 @@
 // Play tones and sounds when notes are triggered from a keyboard or MIDI input.
 
-function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscilloscope, getCurrentSynthType }){
-
-  const NOTES = [ 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' ];
+function initNotePlayer({
+  synth,
+  additiveSynth,
+  fmSynth,
+  soundGenerator,
+  oscilloscope,
+  getCurrentSynthType,
+}) {
+  const NOTES = [
+    "C",
+    "C#",
+    "D",
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B",
+  ];
 
   const padMapping = {
-    36: () => soundGenerator.playSound('kick'),
-    37: () => soundGenerator.playSound('drysnare'),
-    38: () => soundGenerator.playSound('closedhihat'),
-    39: () => soundGenerator.playSound('openhihat'),
+    36: () => soundGenerator.playSound("kick"),
+    37: () => soundGenerator.playSound("drysnare"),
+    38: () => soundGenerator.playSound("closedhihat"),
+    39: () => soundGenerator.playSound("openhihat"),
   };
 
   const commandMapping = {
     106: () => {
       const synthType = getCurrentSynthType();
-      if (synthType === 'additive') {
+      if (synthType === "additive") {
         additiveSynth.switchPreset(-1);
-      } else if (synthType === 'fm') {
+      } else if (synthType === "fm") {
         fmSynth.switchPreset(-1);
       } else {
         synth.switchPatch(-1);
@@ -24,9 +43,9 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
     },
     107: () => {
       const synthType = getCurrentSynthType();
-      if (synthType === 'additive') {
+      if (synthType === "additive") {
         additiveSynth.switchPreset();
-      } else if (synthType === 'fm') {
+      } else if (synthType === "fm") {
         fmSynth.switchPreset();
       } else {
         synth.switchPatch();
@@ -34,9 +53,9 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
     },
     104: () => {
       const synthType = getCurrentSynthType();
-      if (synthType === 'additive') {
+      if (synthType === "additive") {
         additiveSynth.switchPreset(-1);
-      } else if (synthType === 'fm') {
+      } else if (synthType === "fm") {
         fmSynth.switchPreset(-1);
       } else {
         synth.switchPatch(-1);
@@ -44,9 +63,9 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
     },
     105: () => {
       const synthType = getCurrentSynthType();
-      if (synthType === 'additive') {
+      if (synthType === "additive") {
         additiveSynth.switchPreset();
-      } else if (synthType === 'fm') {
+      } else if (synthType === "fm") {
         fmSynth.switchPreset();
       } else {
         synth.switchPatch();
@@ -58,15 +77,15 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
 
   function stopNote({ note, channel }) {
     const { stop } = activeNotes[note] || {};
-    if (typeof stop === 'function') stop();  
+    if (typeof stop === "function") stop();
     delete activeNotes[note];
-    
-    // Remove frequency from oscilloscope
-    oscilloscope.removeFrequency(note);
+
+    // Remove note from oscilloscope
+    oscilloscope.removeNote(note);
   }
 
   function playNote({ note, channel, velocity }) {
-    console.log('playNote', { note, channel, velocity });
+    console.log("playNote", { note, channel, velocity });
     if (channel === 10) {
       padMapping[note]({ velocity });
     } else {
@@ -74,23 +93,34 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
       stopNote({ note, channel });
       const octave = Math.floor(note / 12);
       const noteIdx = note % 12;
-      
+
       const synthType = getCurrentSynthType();
       let selectedSynth;
-      if (synthType === 'additive') {
+      if (synthType === "additive") {
         selectedSynth = additiveSynth;
-      } else if (synthType === 'fm') {
+      } else if (synthType === "fm") {
         selectedSynth = fmSynth;
       } else {
         selectedSynth = synth;
       }
-      
-      const { oscillator, gainNode } = selectedSynth.playNote({ note: NOTES[noteIdx], octave, velocity });
+
+      const synthResult = selectedSynth.playNote({
+        note: NOTES[noteIdx],
+        octave,
+        velocity,
+      });
+      const { oscillator, gainNode } = synthResult;
 
       // Calculate frequency for oscilloscope display
       const noteFrequency = 440 * Math.pow(2, (note - 69) / 12); // A4 = 440Hz, MIDI note 69
-      oscilloscope.addFrequency(noteFrequency, note);
-      
+
+      // Get harmonic information if available (for additive synth)
+      let harmonics = [1]; // Default to fundamental only
+      if (synthType === "additive" && selectedSynth.getHarmonics) {
+        harmonics = selectedSynth.getHarmonics();
+      }
+
+      oscilloscope.addNote(note, noteFrequency, harmonics, velocity);
       oscilloscope.connect(gainNode);
 
       function stop() {
@@ -99,7 +129,6 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
       }
 
       activeNotes[note] = { stop };
-
     }
   }
 
@@ -113,10 +142,9 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
     } else {
       playNote({ note, channel, velocity });
     }
-  };
+  }
 
   return {
-    playParsedMidiMessage
+    playParsedMidiMessage,
   };
-  
 }
