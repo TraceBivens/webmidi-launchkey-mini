@@ -84,6 +84,10 @@
       <label for="amplitudeControl" style="margin-left: 20px;">Oscilloscope Amplitude: </label>
       <input type="range" id="amplitudeControl" min="1" max="10" value="3" step="0.5" style="width: 150px;">
       <span id="amplitudeValue">3x</span>
+      
+      <label for="synthGainControl" style="margin-left: 20px;">Synth Gain: </label>
+      <input type="range" id="synthGainControl" min="0.1" max="2.0" value="1.0" step="0.1" style="width: 150px;">
+      <span id="synthGainValue">1.0x</span>
     </div>
 
     <div id="currentPatchName"></div>
@@ -157,8 +161,19 @@
         
         // Set initial amplitude
         oscilloscope.setAmplitude(3);
-        const synth = initSynth({ audioContext, onPatchChange }); // creates an audio context for one "channel"
-        const additiveSynth = initAdditiveSynth({ audioContext, onPatchChange });
+        
+        // Synth gain control
+        const synthGainControl = document.getElementById('synthGainControl');
+        const synthGainValue = document.getElementById('synthGainValue');
+        let currentSynthGain = 1.0;
+        
+        synthGainControl.addEventListener('input', (e) => {
+          currentSynthGain = parseFloat(e.target.value);
+          synthGainValue.textContent = currentSynthGain.toFixed(1) + 'x';
+        });
+        
+        const synth = initSynth({ audioContext, onPatchChange, getSynthGain: () => currentSynthGain }); // creates an audio context for one "channel"
+        const additiveSynth = initAdditiveSynth({ audioContext, onPatchChange, getSynthGain: () => currentSynthGain });
         const soundGenerator = initSoundGenerator({ SoundEffect });
         
         // Synth selector functionality

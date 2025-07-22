@@ -1,7 +1,7 @@
 // Polyphonic Synth Tone generator based on WebAudio
 // (very) inspired by https://devdocs.io/dom/web_audio_api/simple_synth
 
-function initSynth({ audioContext, onPatchChange }){
+function initSynth({ audioContext, onPatchChange, getSynthGain }){
 
   const NOTES = [ 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' ];
 
@@ -59,7 +59,9 @@ function initSynth({ audioContext, onPatchChange }){
     gainNode.connect(audioContext.destination);
     // TODO: disconnect when we stop playing that note
     // masterGainNode.gain.value = 1.0;
-    gainNode.gain.value = velocity / 127;
+    const baseGain = velocity / 127;
+    const synthGain = getSynthGain ? getSynthGain() : 1.0;
+    gainNode.gain.value = baseGain * synthGain;
     oscillator.connect(gainNode);
     if (patch.apply) {
       patch.apply(oscillator);

@@ -1,7 +1,7 @@
 // 10-Oscillator Additive Synthesizer for demonstrating Fourier decomposition
 // Each oscillator represents a harmonic (1x, 2x, 3x, etc. the fundamental frequency)
 
-function initAdditiveSynth({ audioContext, onPatchChange }) {
+function initAdditiveSynth({ audioContext, onPatchChange, getSynthGain }) {
 
   const NUM_HARMONICS = 20;
   const NOTES = [ 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' ];
@@ -100,7 +100,9 @@ function initAdditiveSynth({ audioContext, onPatchChange }) {
         oscillator.type = 'sine'; // Always use sine waves for pure harmonic content
         
         // Set amplitude for this harmonic
-        harmonicGain.gain.value = currentHarmonics[i] * (velocity / 127) * 0.1; // Scale down to prevent clipping
+        const baseGain = currentHarmonics[i] * (velocity / 127) * 0.1;
+        const synthGain = getSynthGain ? getSynthGain() : 1.0;
+        harmonicGain.gain.value = baseGain * synthGain;
         
         // Connect: oscillator -> harmonic gain -> master gain
         oscillator.connect(harmonicGain);
