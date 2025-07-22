@@ -139,6 +139,25 @@
       <div id="harmonicSliders"></div>
     </div>
 
+    <div id="fmControls" style="margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9; display: none;">
+      <h4>FM Synthesis Controls</h4>
+      <div style="margin-bottom: 15px;">
+        <label for="carrierRatioControl">Carrier Ratio: </label>
+        <input type="range" id="carrierRatioControl" min="0.1" max="8.0" value="1.0" step="0.1" style="width: 200px;">
+        <span id="carrierRatioValue">1.0</span>
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label for="modulatorRatioControl">Modulator Ratio: </label>
+        <input type="range" id="modulatorRatioControl" min="0.1" max="16.0" value="1.0" step="0.1" style="width: 200px;">
+        <span id="modulatorRatioValue">1.0</span>
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label for="modulationIndexControl">Modulation Index: </label>
+        <input type="range" id="modulationIndexControl" min="0.0" max="20.0" value="2.0" step="0.1" style="width: 200px;">
+        <span id="modulationIndexValue">2.0</span>
+      </div>
+    </div>
+
     <div id="renderedKeyboard"></div>
 
     <div id="startupModal">
@@ -349,6 +368,46 @@
         
         createHarmonicControls();
         
+        // Create FM controls
+        function createFMControls() {
+          const carrierRatioControl = document.getElementById('carrierRatioControl');
+          const carrierRatioValue = document.getElementById('carrierRatioValue');
+          const modulatorRatioControl = document.getElementById('modulatorRatioControl');
+          const modulatorRatioValue = document.getElementById('modulatorRatioValue');
+          const modulationIndexControl = document.getElementById('modulationIndexControl');
+          const modulationIndexValue = document.getElementById('modulationIndexValue');
+          
+          carrierRatioControl.addEventListener('input', (e) => {
+            const ratio = parseFloat(e.target.value);
+            fmSynth.setCarrierRatio(ratio);
+            carrierRatioValue.textContent = ratio.toFixed(1);
+          });
+          
+          modulatorRatioControl.addEventListener('input', (e) => {
+            const ratio = parseFloat(e.target.value);
+            fmSynth.setModulatorRatio(ratio);
+            modulatorRatioValue.textContent = ratio.toFixed(1);
+          });
+          
+          modulationIndexControl.addEventListener('input', (e) => {
+            const index = parseFloat(e.target.value);
+            fmSynth.setModulationIndex(index);
+            modulationIndexValue.textContent = index.toFixed(1);
+          });
+          
+          // Function to update FM controls when preset changes
+          window.updateFMControls = function(params) {
+            carrierRatioControl.value = params.carrierRatio;
+            carrierRatioValue.textContent = params.carrierRatio.toFixed(1);
+            modulatorRatioControl.value = params.modulatorRatio;
+            modulatorRatioValue.textContent = params.modulatorRatio.toFixed(1);
+            modulationIndexControl.value = params.modulationIndex;
+            modulationIndexValue.textContent = params.modulationIndex.toFixed(1);
+          };
+        }
+        
+        createFMControls();
+        
         const notePlayer = initNotePlayer({ 
           synth, 
           additiveSynth, 
@@ -360,19 +419,24 @@
         
         function updateSynthDisplay() {
           const harmonicControls = document.getElementById('harmonicControls');
+          const fmControls = document.getElementById('fmControls');
+          
           if (currentSynthType === 'additive') {
             harmonicControls.style.display = 'block';
+            fmControls.style.display = 'none';
             const presetInfo = additiveSynth.getPresetInfo();
             onPatchChange(presetInfo);
             updateHarmonicSliders(presetInfo.harmonics);
+          } else if (currentSynthType === 'fm') {
+            harmonicControls.style.display = 'none';
+            fmControls.style.display = 'block';
+            const presetInfo = fmSynth.getPresetInfo();
+            onPatchChange(presetInfo);
+            updateFMControls(presetInfo.params || presetInfo);
           } else {
             harmonicControls.style.display = 'none';
-            if (currentSynthType === 'fm') {
-              const presetInfo = fmSynth.getPresetInfo();
-              onPatchChange(presetInfo);
-            } else {
-              onPatchChange({ name: 'Basic Synth', type: 'waveform' });
-            }
+            fmControls.style.display = 'none';
+            onPatchChange({ name: 'Basic Synth', type: 'waveform' });
           }
         }
         
