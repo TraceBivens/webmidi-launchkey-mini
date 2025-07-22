@@ -57,17 +57,24 @@ function initAdditiveSynth({ audioContext, onPatchChange }) {
     currentPreset = (harmonicPresets.length + currentPreset + incr) % harmonicPresets.length;
     currentHarmonics = [...harmonicPresets[currentPreset].harmonics];
     console.log('Additive Synth:', harmonicPresets[currentPreset].name);
-    onPatchChange && onPatchChange({
+    const presetInfo = {
       name: harmonicPresets[currentPreset].name,
       type: 'additive',
       description: harmonicPresets[currentPreset].description,
       harmonics: currentHarmonics
-    });
+    };
+    onPatchChange && onPatchChange(presetInfo);
+    
+    // Update harmonic sliders if they exist
+    if (typeof updateHarmonicSliders === 'function') {
+      updateHarmonicSliders(currentHarmonics);
+    }
   }
 
   function setHarmonic(harmonicIndex, amplitude) {
     if (harmonicIndex >= 0 && harmonicIndex < NUM_HARMONICS) {
       currentHarmonics[harmonicIndex] = Math.max(0, Math.min(1, amplitude));
+      currentPreset = -1; // Mark as custom when manually adjusted
       onPatchChange && onPatchChange({
         name: 'Custom',
         type: 'additive',
@@ -129,12 +136,13 @@ function initAdditiveSynth({ audioContext, onPatchChange }) {
   }
 
   // Initialize with first preset
-  onPatchChange && onPatchChange({
+  const initialPresetInfo = {
     name: harmonicPresets[currentPreset].name,
     type: 'additive',
     description: harmonicPresets[currentPreset].description,
     harmonics: currentHarmonics
-  });
+  };
+  onPatchChange && onPatchChange(initialPresetInfo);
 
   return {
     playTone,

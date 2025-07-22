@@ -44,6 +44,31 @@
         margin: 0 auto;
         font-size: 24px;
       }
+      /* harmonic controls */
+      .harmonic-control {
+        display: inline-block;
+        margin: 5px;
+        text-align: center;
+        vertical-align: top;
+      }
+      .harmonic-slider {
+        writing-mode: bt-lr; /* IE */
+        writing-mode: vertical-lr; /* Standard */
+        width: 20px;
+        height: 100px;
+        margin: 5px auto;
+      }
+      .harmonic-label {
+        font-size: 12px;
+        margin-top: 5px;
+      }
+      .harmonic-value {
+        font-size: 10px;
+        color: #666;
+      }
+      #harmonicControls {
+        display: none; /* Hidden by default, shown when additive synth is selected */
+      }
     </style>
   </head>
   <body>
@@ -58,6 +83,11 @@
     </div>
 
     <div id="currentPatchName"></div>
+
+    <div id="harmonicControls" style="margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
+      <h4>Harmonic Amplitude Controls</h4>
+      <div id="harmonicSliders"></div>
+    </div>
 
     <div id="renderedKeyboard"></div>
 
@@ -118,6 +148,61 @@
         const synthSelector = document.getElementById('synthSelector');
         let currentSynthType = 'additive'; // Default to additive for educational purposes
         
+        // Create harmonic controls
+        function createHarmonicControls() {
+          const harmonicControls = document.getElementById('harmonicControls');
+          const harmonicSliders = document.getElementById('harmonicSliders');
+          
+          // Create sliders for each harmonic
+          for (let i = 0; i < additiveSynth.NUM_HARMONICS; i++) {
+            const controlDiv = document.createElement('div');
+            controlDiv.className = 'harmonic-control';
+            
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.className = 'harmonic-slider';
+            slider.min = '0';
+            slider.max = '100';
+            slider.value = '0';
+            slider.orient = 'vertical'; // For Firefox
+            
+            const label = document.createElement('div');
+            label.className = 'harmonic-label';
+            label.textContent = `H${i + 1}`;
+            
+            const valueDisplay = document.createElement('div');
+            valueDisplay.className = 'harmonic-value';
+            valueDisplay.textContent = '0%';
+            
+            // Update harmonic when slider changes
+            slider.addEventListener('input', (e) => {
+              const amplitude = parseFloat(e.target.value) / 100;
+              additiveSynth.setHarmonic(i, amplitude);
+              valueDisplay.textContent = Math.round(amplitude * 100) + '%';
+            });
+            
+            controlDiv.appendChild(slider);
+            controlDiv.appendChild(label);
+            controlDiv.appendChild(valueDisplay);
+            harmonicSliders.appendChild(controlDiv);
+          }
+          
+          // Function to update sliders when preset changes
+          window.updateHarmonicSliders = function(harmonics) {
+            const sliders = harmonicSliders.querySelectorAll('.harmonic-slider');
+            const valueDisplays = harmonicSliders.querySelectorAll('.harmonic-value');
+            
+            harmonics.forEach((amplitude, i) => {
+              if (sliders[i]) {
+                sliders[i].value = Math.round(amplitude * 100);
+                valueDisplays[i].textContent = Math.round(amplitude * 100) + '%';
+              }
+            });
+          };
+        }
+        
+        createHarmonicControls();
+        
         const notePlayer = initNotePlayer({ 
           synth, 
           additiveSynth, 
@@ -126,19 +211,27 @@
           getCurrentSynthType: () => currentSynthType
         });
         
+        function updateSynthDisplay() {
+          const harmonicControls = document.getElementById('harmonicControls');
+          if (currentSynthType === 'additive') {
+            harmonicControls.style.display = 'block';
+            const presetInfo = additiveSynth.getPresetInfo();
+            onPatchChange(presetInfo);
+            updateHarmonicSliders(presetInfo.harmonics);
+          } else {
+            harmonicControls.style.display = 'none';
+            onPatchChange({ name: 'Basic Synth', type: 'waveform' });
+          }
+        }
+        
         synthSelector.addEventListener('change', (e) => {
           currentSynthType = e.target.value;
           console.log('Switched to:', currentSynthType);
-          // Trigger patch change to update display
-          if (currentSynthType === 'additive') {
-            onPatchChange(additiveSynth.getPresetInfo());
-          } else {
-            onPatchChange({ name: 'Basic Synth', type: 'waveform' });
-          }
+          updateSynthDisplay();
         });
         
         // Initialize with additive synth display
-        onPatchChange(additiveSynth.getPresetInfo());
+        updateSynthDisplay();
 
         // 2. Pipe MIDI messages to synth and UI
         
