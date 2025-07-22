@@ -20,8 +20,13 @@ function initOscilloscope({ Scope, audioContext, canvas }){
     gainNode.disconnect(input);
   }
 
+  function setAmplitude(amplitude) {
+    scopeVis.setAmplitude(amplitude);
+  }
+
   return {
     connect,
     disconnect,
+    setAmplitude,
   };
 }
