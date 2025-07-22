@@ -123,6 +123,7 @@
         <label for="synthSelector">Synthesizer Type: </label>
         <select id="synthSelector">
           <option value="additive">Additive Synth (Fourier Demo)</option>
+          <option value="fm">FM Synth (Frequency Modulation)</option>
           <option value="basic">Basic Synth (Waveforms)</option>
         </select>
         
@@ -158,6 +159,7 @@
     <script src="sound-generator.js"></script>  <!-- imports initSoundGenerator() -->
     <script src="synth.js"></script>            <!-- imports initSynth() -->
     <script src="additive-synth.js"></script>   <!-- imports initAdditiveSynth() -->
+    <script src="fm-synth.js"></script>         <!-- imports initFMSynth() -->
     <script src="oscilloscope.js"></script>     <!-- imports initOscilloscope() -->
     <script src="note-player.js"></script>      <!-- imports initNotePlayer() -->
 
@@ -285,6 +287,7 @@
         
         const synth = initSynth({ audioContext, onPatchChange, getSynthGain: () => currentSynthGain }); // creates an audio context for one "channel"
         const additiveSynth = initAdditiveSynth({ audioContext, onPatchChange, getSynthGain: () => currentSynthGain });
+        const fmSynth = initFMSynth({ audioContext, onPatchChange, getSynthGain: () => currentSynthGain });
         const soundGenerator = initSoundGenerator({ SoundEffect });
         
         // Synth selector functionality
@@ -349,6 +352,7 @@
         const notePlayer = initNotePlayer({ 
           synth, 
           additiveSynth, 
+          fmSynth,
           soundGenerator, 
           oscilloscope,
           getCurrentSynthType: () => currentSynthType
@@ -363,7 +367,12 @@
             updateHarmonicSliders(presetInfo.harmonics);
           } else {
             harmonicControls.style.display = 'none';
-            onPatchChange({ name: 'Basic Synth', type: 'waveform' });
+            if (currentSynthType === 'fm') {
+              const presetInfo = fmSynth.getPresetInfo();
+              onPatchChange(presetInfo);
+            } else {
+              onPatchChange({ name: 'Basic Synth', type: 'waveform' });
+            }
           }
         }
         

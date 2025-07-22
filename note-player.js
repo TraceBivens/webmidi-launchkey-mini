@@ -1,6 +1,6 @@
 // Play tones and sounds when notes are triggered from a keyboard or MIDI input.
 
-function initNotePlayer({ synth, additiveSynth, soundGenerator, oscilloscope, getCurrentSynthType }){
+function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscilloscope, getCurrentSynthType }){
 
   const NOTES = [ 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' ];
 
@@ -13,29 +13,41 @@ function initNotePlayer({ synth, additiveSynth, soundGenerator, oscilloscope, ge
 
   const commandMapping = {
     106: () => {
-      if (getCurrentSynthType() === 'additive') {
+      const synthType = getCurrentSynthType();
+      if (synthType === 'additive') {
         additiveSynth.switchPreset(-1);
+      } else if (synthType === 'fm') {
+        fmSynth.switchPreset(-1);
       } else {
         synth.switchPatch(-1);
       }
     },
     107: () => {
-      if (getCurrentSynthType() === 'additive') {
+      const synthType = getCurrentSynthType();
+      if (synthType === 'additive') {
         additiveSynth.switchPreset();
+      } else if (synthType === 'fm') {
+        fmSynth.switchPreset();
       } else {
         synth.switchPatch();
       }
     },
     104: () => {
-      if (getCurrentSynthType() === 'additive') {
+      const synthType = getCurrentSynthType();
+      if (synthType === 'additive') {
         additiveSynth.switchPreset(-1);
+      } else if (synthType === 'fm') {
+        fmSynth.switchPreset(-1);
       } else {
         synth.switchPatch(-1);
       }
     },
     105: () => {
-      if (getCurrentSynthType() === 'additive') {
+      const synthType = getCurrentSynthType();
+      if (synthType === 'additive') {
         additiveSynth.switchPreset();
+      } else if (synthType === 'fm') {
+        fmSynth.switchPreset();
       } else {
         synth.switchPatch();
       }
@@ -60,7 +72,16 @@ function initNotePlayer({ synth, additiveSynth, soundGenerator, oscilloscope, ge
       const octave = Math.floor(note / 12);
       const noteIdx = note % 12;
       
-      const selectedSynth = getCurrentSynthType() === 'additive' ? additiveSynth : synth;
+      const synthType = getCurrentSynthType();
+      let selectedSynth;
+      if (synthType === 'additive') {
+        selectedSynth = additiveSynth;
+      } else if (synthType === 'fm') {
+        selectedSynth = fmSynth;
+      } else {
+        selectedSynth = synth;
+      }
+      
       const { oscillator, gainNode } = selectedSynth.playNote({ note: NOTES[noteIdx], octave, velocity });
 
       oscilloscope.connect(gainNode);
