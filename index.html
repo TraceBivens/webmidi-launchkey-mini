@@ -101,6 +101,19 @@
           <button id="gridReset">Reset</button>
           <span id="gridPosition" style="margin-left: 10px;">H: 0ms, V: 0.0</span>
         </div>
+        
+        <div style="margin-top: 10px;">
+          <label for="triggerLevelControl">Trigger Level: </label>
+          <input type="range" id="triggerLevelControl" min="-0.5" max="0.5" value="0" step="0.01" style="width: 150px;">
+          <span id="triggerLevelValue">0.00</span>
+          
+          <label for="triggerModeControl" style="margin-left: 20px;">Mode: </label>
+          <select id="triggerModeControl">
+            <option value="auto">Auto</option>
+            <option value="normal">Normal</option>
+            <option value="single">Single</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -240,6 +253,25 @@
         
         // Set initial time resolution
         oscilloscope.setTimeResolution(5);
+        
+        // Trigger controls
+        const triggerLevelControl = document.getElementById('triggerLevelControl');
+        const triggerLevelValue = document.getElementById('triggerLevelValue');
+        const triggerModeControl = document.getElementById('triggerModeControl');
+        
+        triggerLevelControl.addEventListener('input', (e) => {
+          const level = parseFloat(e.target.value);
+          oscilloscope.setTriggerLevel(level);
+          triggerLevelValue.textContent = level.toFixed(2);
+        });
+        
+        triggerModeControl.addEventListener('change', (e) => {
+          oscilloscope.setTriggerMode(e.target.value);
+        });
+        
+        // Set initial trigger settings
+        oscilloscope.setTriggerLevel(0);
+        oscilloscope.setTriggerMode('auto');
         
         // Synth gain control
         const synthGainControl = document.getElementById('synthGainControl');

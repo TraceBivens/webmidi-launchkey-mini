@@ -6,6 +6,9 @@ function initOscilloscope({ Scope, audioContext, canvas }){
   const input = scope.getInput();
 
   const scopeVis = new Scope.ScopeRenderer(canvas);
+  // Link renderer and sampler for trigger control
+  scopeVis.setSampler(scope);
+  
   // Create a draw batch targeting 15fps for smoother but stable display
   //    with a single draw instruction in the batch (1 per displayed scope)
   const drawBatch = new Scope.ScopeDrawBatch({ fps: 15 });
@@ -40,6 +43,14 @@ function initOscilloscope({ Scope, audioContext, canvas }){
     scopeVis.setTimeResolution(msPerDiv);
   }
 
+  function setTriggerLevel(level) {
+    scopeVis.setTriggerLevel(level);
+  }
+
+  function setTriggerMode(mode) {
+    scopeVis.setTriggerMode(mode);
+  }
+
   return {
     connect,
     disconnect,
@@ -48,5 +59,7 @@ function initOscilloscope({ Scope, audioContext, canvas }){
     resetGrid,
     getGridPosition,
     setTimeResolution,
+    setTriggerLevel,
+    setTriggerMode,
   };
 }
