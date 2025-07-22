@@ -36,6 +36,10 @@ function initOscilloscope({ Scope, audioContext, canvas }){
     return scopeVis.getGridPosition();
   }
 
+  function setTimeResolution(msPerDiv) {
+    scopeVis.setTimeResolution(msPerDiv);
+  }
+
   return {
     connect,
     disconnect,
@@ -43,5 +47,6 @@ function initOscilloscope({ Scope, audioContext, canvas }){
     moveGrid,
     resetGrid,
     getGridPosition,
+    setTimeResolution,
   };
 }

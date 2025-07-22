@@ -82,6 +82,17 @@
         <span id="amplitudeValue">3x</span>
         
         <div style="margin-top: 10px;">
+          <label for="timeResolutionControl">Time Resolution: </label>
+          <select id="timeResolutionControl">
+            <option value="1">1ms/div</option>
+            <option value="2">2ms/div</option>
+            <option value="5" selected>5ms/div</option>
+            <option value="10">10ms/div</option>
+            <option value="20">20ms/div</option>
+          </select>
+        </div>
+        
+        <div style="margin-top: 10px;">
           <label>Grid Position: </label>
           <button id="gridLeft">← H</button>
           <button id="gridRight">H →</button>
@@ -218,6 +229,17 @@
         }
         
         updateGridDisplay();
+        
+        // Time resolution control
+        const timeResolutionControl = document.getElementById('timeResolutionControl');
+        
+        timeResolutionControl.addEventListener('change', (e) => {
+          const resolution = parseFloat(e.target.value);
+          oscilloscope.setTimeResolution(resolution);
+        });
+        
+        // Set initial time resolution
+        oscilloscope.setTimeResolution(5);
         
         // Synth gain control
         const synthGainControl = document.getElementById('synthGainControl');
