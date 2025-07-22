@@ -85,6 +85,10 @@ This fork includes major enhancements to the original codebase:
 - **Professional measurement tools** - accurate time and amplitude readings
 - **Physics education ready** - suitable for university-level sound physics courses
 
+## Documentation
+
+For complete technical details about the oscilloscope improvements and implementation, see [OSCILLOSCOPE_COMPLETE_FIX.md](./OSCILLOSCOPE_COMPLETE_FIX.md).
+
 ## Contributors
 
 - [Adrien Joly](https://github.com/adrienjoly) - Original developer
