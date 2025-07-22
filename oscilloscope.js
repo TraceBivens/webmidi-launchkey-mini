@@ -24,9 +24,24 @@ function initOscilloscope({ Scope, audioContext, canvas }){
     scopeVis.setAmplitude(amplitude);
   }
 
+  function moveGrid(deltaH, deltaV) {
+    scopeVis.moveGrid(deltaH, deltaV);
+  }
+
+  function resetGrid() {
+    scopeVis.resetGrid();
+  }
+
+  function getGridPosition() {
+    return scopeVis.getGridPosition();
+  }
+
   return {
     connect,
     disconnect,
     setAmplitude,
+    moveGrid,
+    resetGrid,
+    getGridPosition,
   };
 }

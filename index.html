@@ -80,6 +80,16 @@
         <label for="amplitudeControl">Amplitude: </label>
         <input type="range" id="amplitudeControl" min="1" max="10" value="3" step="0.5" style="width: 150px;">
         <span id="amplitudeValue">3x</span>
+        
+        <div style="margin-top: 10px;">
+          <label>Grid Position: </label>
+          <button id="gridLeft">← H</button>
+          <button id="gridRight">H →</button>
+          <button id="gridUp">↑ V</button>
+          <button id="gridDown">V ↓</button>
+          <button id="gridReset">Reset</button>
+          <span id="gridPosition" style="margin-left: 10px;">H: 0ms, V: 0.0</span>
+        </div>
       </div>
     </div>
 
@@ -168,6 +178,46 @@
         
         // Set initial amplitude
         oscilloscope.setAmplitude(3);
+        
+        // Grid movement controls
+        const gridLeft = document.getElementById('gridLeft');
+        const gridRight = document.getElementById('gridRight');
+        const gridUp = document.getElementById('gridUp');
+        const gridDown = document.getElementById('gridDown');
+        const gridReset = document.getElementById('gridReset');
+        const gridPosition = document.getElementById('gridPosition');
+        
+        gridLeft.addEventListener('click', () => {
+          oscilloscope.moveGrid(-1, 0);
+          updateGridDisplay();
+        });
+        
+        gridRight.addEventListener('click', () => {
+          oscilloscope.moveGrid(1, 0);
+          updateGridDisplay();
+        });
+        
+        gridUp.addEventListener('click', () => {
+          oscilloscope.moveGrid(0, -1);
+          updateGridDisplay();
+        });
+        
+        gridDown.addEventListener('click', () => {
+          oscilloscope.moveGrid(0, 1);
+          updateGridDisplay();
+        });
+        
+        gridReset.addEventListener('click', () => {
+          oscilloscope.resetGrid();
+          updateGridDisplay();
+        });
+        
+        function updateGridDisplay() {
+          const pos = oscilloscope.getGridPosition();
+          gridPosition.textContent = `H: ${pos.timeMs.toFixed(1)}ms, V: ${pos.amplitude.toFixed(1)}`;
+        }
+        
+        updateGridDisplay();
         
         // Synth gain control
         const synthGainControl = document.getElementById('synthGainControl');
