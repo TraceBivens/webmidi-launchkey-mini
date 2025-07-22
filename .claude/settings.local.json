@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(claude --debug)",
+      "Bash(claude mcp:*)",
+      "Bash(curl:*)",
+      "Bash(npx:*)",
+      "Bash(BROWSERBASE_API_KEY=\"bb_live_LkShvH0JbNVx-X5ZOayzp-CbFzY\" BROWSERBASE_PROJECT_ID=\"f5216f5e-b3a4-48df-9e65-e6f3a9b1ff7c\" claude mcp add browserbase -- npx @browserbasehq/mcp)",
+      "Bash(BROWSERBASE_API_KEY=\"bb_live_LkShvH0JbNVx-X5ZOayzp-CbFzY\" BROWSERBASE_PROJECT_ID=\"f5216f5e-b3a4-48df-9e65-e6f3a9b1ff7c\" npx @browserbasehq/mcp --help)",
+      "Bash(pkill:*)",
+      "Bash(grep:*)",
+      "Bash(npm start)",
+      "mcp__serena__initial_instructions",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__onboarding",
+      "mcp__serena__list_dir",
+      "mcp__serena__write_memory",
+      "mcp__serena__find_symbol",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__think_about_task_adherence",
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__replace_regex",
+      "mcp__browserbase__browserbase_session_create",
+      "mcp__serena__think_about_collected_information",
+      "mcp__serena__summarize_changes",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.mattmontag.com)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

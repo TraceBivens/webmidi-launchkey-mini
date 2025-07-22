@@ -1,482 +1,658 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <style>
-      /* keyboard ui */
-      .nlk-half-key {
-        display: inline-block;
-        width: 12px;
-        margin: 1px;
-      }
-      .nlk-key {
-        text-align: center;
-        width: 24px;
-        border: 0 none;
-        margin: 1px;
-      }
-      .nlk-white {
-        background-color: #eee;
-        color: #111;
-      }
-      .nlk-black {
-        background-color: #111;
-        color: #eee;
-      }
-      #renderedKeyboard {
-        margin: 20px;
-      }
-      /* startup modal */
-      #startupModal {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255,255,255,0.8);
-      }
-      #startupModal p {
-        text-align: center;
-        line-height: 100px;
-      }
-      #run {
-        display: block;
-        margin: 0 auto;
-        font-size: 24px;
-      }
-      /* harmonic controls */
-      .harmonic-control {
-        display: inline-block;
-        margin: 3px;
-        text-align: center;
-        vertical-align: top;
-      }
-      .harmonic-slider {
-        writing-mode: bt-lr; /* IE */
-        writing-mode: vertical-lr; /* Standard */
-        width: 15px;
-        height: 80px;
-        margin: 3px auto;
-        transform: rotate(180deg); /* Reverse direction so 0% is at bottom */
-      }
-      .harmonic-label {
-        font-size: 10px;
-        margin-top: 3px;
-      }
-      .harmonic-value {
-        font-size: 8px;
-        color: #666;
-      }
-      #harmonicControls {
-        display: none; /* Hidden by default, shown when additive synth is selected */
-      }
-    </style>
-  </head>
-  <body>
-    <div id="scopeControls" style="margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
-      <h4>Oscilloscope Controls</h4>
-      <canvas id="osc1" width="2400" height="600" style="width: 1200px; height: 300px; border: 1px solid #ddd;"></canvas>
-      <div style="margin-top: 10px;">
-        <label for="amplitudeControl">Amplitude: </label>
-        <input type="range" id="amplitudeControl" min="1" max="10" value="3" step="0.5" style="width: 150px;">
-        <span id="amplitudeValue">3x</span>
-        
-        <div style="margin-top: 10px;">
-          <label for="timeResolutionControl">Time Resolution: </label>
-          <select id="timeResolutionControl">
-            <option value="1">1ms/div</option>
-            <option value="2">2ms/div</option>
-            <option value="5" selected>5ms/div</option>
-            <option value="10">10ms/div</option>
-            <option value="20">20ms/div</option>
-          </select>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            /* keyboard ui */
+            .nlk-half-key {
+                display: inline-block;
+                width: 12px;
+                margin: 1px;
+            }
+            .nlk-key {
+                text-align: center;
+                width: 24px;
+                border: 0 none;
+                margin: 1px;
+            }
+            .nlk-white {
+                background-color: #eee;
+                color: #111;
+            }
+            .nlk-black {
+                background-color: #111;
+                color: #eee;
+            }
+            #renderedKeyboard {
+                margin: 20px;
+            }
+            /* startup modal */
+            #startupModal {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(255, 255, 255, 0.8);
+            }
+            #startupModal p {
+                text-align: center;
+                line-height: 100px;
+            }
+            #run {
+                display: block;
+                margin: 0 auto;
+                font-size: 24px;
+            }
+            /* harmonic controls */
+            .harmonic-control {
+                display: inline-block;
+                margin: 3px;
+                text-align: center;
+                vertical-align: top;
+            }
+            .harmonic-slider {
+                writing-mode: bt-lr; /* IE */
+                writing-mode: vertical-lr; /* Standard */
+                width: 15px;
+                height: 80px;
+                margin: 3px auto;
+                transform: rotate(
+                    180deg
+                ); /* Reverse direction so 0% is at bottom */
+            }
+            .harmonic-label {
+                font-size: 10px;
+                margin-top: 3px;
+            }
+            .harmonic-value {
+                font-size: 8px;
+                color: #666;
+            }
+            #harmonicControls {
+                display: none; /* Hidden by default, shown when additive synth is selected */
+            }
+        </style>
+    </head>
+    <body>
+        <div
+            id="scopeControls"
+            style="
+                margin: 20px;
+                padding: 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            "
+        >
+            <h4>Oscilloscope Controls</h4>
+            <canvas
+                id="osc1"
+                width="2400"
+                height="600"
+                style="width: 1200px; height: 300px; border: 1px solid #ddd"
+            ></canvas>
+            <div style="margin-top: 10px">
+                <label for="amplitudeControl">Amplitude: </label>
+                <input
+                    type="range"
+                    id="amplitudeControl"
+                    min="1"
+                    max="10"
+                    value="3"
+                    step="0.5"
+                    style="width: 150px"
+                />
+                <span id="amplitudeValue">3x</span>
+
+                <div style="margin-top: 10px">
+                    <label for="timeResolutionControl">Time Resolution: </label>
+                    <select id="timeResolutionControl">
+                        <option value="0.5">0.5ms/div (2kHz+)</option>
+                        <option value="1">1ms/div (1kHz+)</option>
+                        <option value="2">2ms/div (500Hz+)</option>
+                        <option value="5" selected>5ms/div (200Hz+)</option>
+                        <option value="10">10ms/div (100Hz+)</option>
+                        <option value="20">20ms/div (50Hz+)</option>
+                        <option value="50">50ms/div (20Hz+)</option>
+                    </select>
+                </div>
+
+                <div style="margin-top: 10px">
+                    <label>Grid Position: </label>
+                    <button id="gridLeft">← H</button>
+                    <button id="gridRight">H →</button>
+                    <button id="gridUp">↑ V</button>
+                    <button id="gridDown">V ↓</button>
+                    <button id="gridReset">Reset</button>
+                    <span id="gridPosition" style="margin-left: 10px"
+                        >H: 0ms, V: 0.0</span
+                    >
+                </div>
+
+                <div style="margin-top: 10px">
+                    <label for="triggerLevelControl">Trigger Level: </label>
+                    <input
+                        type="range"
+                        id="triggerLevelControl"
+                        min="-0.5"
+                        max="0.5"
+                        value="0"
+                        step="0.01"
+                        style="width: 150px"
+                    />
+                    <span id="triggerLevelValue">0.00</span>
+
+                    <label for="triggerModeControl" style="margin-left: 20px"
+                        >Mode:
+                    </label>
+                    <select id="triggerModeControl">
+                        <option value="auto">Auto</option>
+                        <option value="normal">Normal</option>
+                        <option value="single">Single</option>
+                    </select>
+                </div>
+            </div>
         </div>
-        
-        <div style="margin-top: 10px;">
-          <label>Grid Position: </label>
-          <button id="gridLeft">← H</button>
-          <button id="gridRight">H →</button>
-          <button id="gridUp">↑ V</button>
-          <button id="gridDown">V ↓</button>
-          <button id="gridReset">Reset</button>
-          <span id="gridPosition" style="margin-left: 10px;">H: 0ms, V: 0.0</span>
+
+        <div
+            id="synthControls"
+            style="
+                margin: 20px;
+                padding: 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            "
+        >
+            <h4>Synthesizer Controls</h4>
+            <div style="margin-bottom: 10px">
+                <label for="synthSelector">Synthesizer Type: </label>
+                <select id="synthSelector">
+                    <option value="additive">
+                        Additive Synth (Fourier Demo)
+                    </option>
+                    <option value="fm">FM Synth (Frequency Modulation)</option>
+                    <option value="basic">Basic Synth (Waveforms)</option>
+                </select>
+
+                <label for="synthGainControl" style="margin-left: 20px"
+                    >Gain:
+                </label>
+                <input
+                    type="range"
+                    id="synthGainControl"
+                    min="0.1"
+                    max="2.0"
+                    value="1.0"
+                    step="0.1"
+                    style="width: 150px"
+                />
+                <span id="synthGainValue">1.0x</span>
+            </div>
+            <div id="currentPatchName"></div>
         </div>
-        
-        <div style="margin-top: 10px;">
-          <label for="triggerLevelControl">Trigger Level: </label>
-          <input type="range" id="triggerLevelControl" min="-0.5" max="0.5" value="0" step="0.01" style="width: 150px;">
-          <span id="triggerLevelValue">0.00</span>
-          
-          <label for="triggerModeControl" style="margin-left: 20px;">Mode: </label>
-          <select id="triggerModeControl">
-            <option value="auto">Auto</option>
-            <option value="normal">Normal</option>
-            <option value="single">Single</option>
-          </select>
+
+        <div
+            id="harmonicControls"
+            style="
+                margin: 20px;
+                padding: 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            "
+        >
+            <h4>Harmonic Amplitude Controls</h4>
+            <div id="harmonicSliders"></div>
         </div>
-      </div>
-    </div>
 
-    <div id="synthControls" style="margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
-      <h4>Synthesizer Controls</h4>
-      <div style="margin-bottom: 10px;">
-        <label for="synthSelector">Synthesizer Type: </label>
-        <select id="synthSelector">
-          <option value="additive">Additive Synth (Fourier Demo)</option>
-          <option value="fm">FM Synth (Frequency Modulation)</option>
-          <option value="basic">Basic Synth (Waveforms)</option>
-        </select>
-        
-        <label for="synthGainControl" style="margin-left: 20px;">Gain: </label>
-        <input type="range" id="synthGainControl" min="0.1" max="2.0" value="1.0" step="0.1" style="width: 150px;">
-        <span id="synthGainValue">1.0x</span>
-      </div>
-      <div id="currentPatchName"></div>
-    </div>
+        <div
+            id="fmControls"
+            style="
+                margin: 20px;
+                padding: 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+                display: none;
+            "
+        >
+            <h4>FM Synthesis Controls</h4>
+            <div style="margin-bottom: 15px">
+                <label for="carrierRatioControl">Carrier Ratio: </label>
+                <input
+                    type="range"
+                    id="carrierRatioControl"
+                    min="0.1"
+                    max="8.0"
+                    value="1.0"
+                    step="0.1"
+                    style="width: 200px"
+                />
+                <span id="carrierRatioValue">1.0</span>
+            </div>
+            <div style="margin-bottom: 15px">
+                <label for="modulatorRatioControl">Modulator Ratio: </label>
+                <input
+                    type="range"
+                    id="modulatorRatioControl"
+                    min="0.1"
+                    max="16.0"
+                    value="1.0"
+                    step="0.1"
+                    style="width: 200px"
+                />
+                <span id="modulatorRatioValue">1.0</span>
+            </div>
+            <div style="margin-bottom: 15px">
+                <label for="modulationIndexControl">Modulation Index: </label>
+                <input
+                    type="range"
+                    id="modulationIndexControl"
+                    min="0.0"
+                    max="20.0"
+                    value="2.0"
+                    step="0.1"
+                    style="width: 200px"
+                />
+                <span id="modulationIndexValue">2.0</span>
+            </div>
+        </div>
 
-    <div id="harmonicControls" style="margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
-      <h4>Harmonic Amplitude Controls</h4>
-      <div id="harmonicSliders"></div>
-    </div>
+        <div id="renderedKeyboard"></div>
 
-    <div id="fmControls" style="margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9; display: none;">
-      <h4>FM Synthesis Controls</h4>
-      <div style="margin-bottom: 15px;">
-        <label for="carrierRatioControl">Carrier Ratio: </label>
-        <input type="range" id="carrierRatioControl" min="0.1" max="8.0" value="1.0" step="0.1" style="width: 200px;">
-        <span id="carrierRatioValue">1.0</span>
-      </div>
-      <div style="margin-bottom: 15px;">
-        <label for="modulatorRatioControl">Modulator Ratio: </label>
-        <input type="range" id="modulatorRatioControl" min="0.1" max="16.0" value="1.0" step="0.1" style="width: 200px;">
-        <span id="modulatorRatioValue">1.0</span>
-      </div>
-      <div style="margin-bottom: 15px;">
-        <label for="modulationIndexControl">Modulation Index: </label>
-        <input type="range" id="modulationIndexControl" min="0.0" max="20.0" value="2.0" step="0.1" style="width: 200px;">
-        <span id="modulationIndexValue">2.0</span>
-      </div>
-    </div>
+        <div id="startupModal">
+            <p>Plug your MIDI instrument (if any), then click on the button.</p>
+            <button id="run">Start</button>
+        </div>
 
-    <div id="renderedKeyboard"></div>
+        <!-- "fork me on github" ribbon -->
+        <a href="https://github.com/adrienjoly/webmidi-launchkey-mini"
+            ><p style="position: absolute; top: 0; right: 0; border: 0">
+                Fork me on GitHub
+            </p></a
+        >
 
-    <div id="startupModal">
-      <p>Plug your MIDI instrument (if any), then click on the button.</p>
-      <button id="run">Start</button>
-    </div>
+        <script src="keyboard-input.js"></script>
+        <!-- imports initKeyboardInput() -->
+        <script src="webmidi-reader.js"></script>
+        <!-- imports initWebMidiReader() -->
+        <script src="launchkey-state.js"></script>
+        <!-- imports initLaunchkeyState() -->
+        <script src="render.js"></script>
+        <!-- imports initKeyboardRenderer() -->
+        <script src="lib/riffwave.js"></script>
+        <!-- imports RIFFWAVE -->
+        <script src="lib/sfxr.js"></script>
+        <!-- imports SoundEffect -->
+        <script src="lib/scope.js"></script>
+        <!-- imports Scope -->
+        <script src="sound-generator.js"></script>
+        <!-- imports initSoundGenerator() -->
+        <script src="synth.js"></script>
+        <!-- imports initSynth() -->
+        <script src="additive-synth.js"></script>
+        <!-- imports initAdditiveSynth() -->
+        <script src="fm-synth.js"></script>
+        <!-- imports initFMSynth() -->
+        <script src="oscilloscope.js"></script>
+        <!-- imports initOscilloscope() -->
+        <script src="note-player.js"></script>
+        <!-- imports initNotePlayer() -->
 
-    <!-- "fork me on github" ribbon -->
-    <a href="https://github.com/adrienjoly/webmidi-launchkey-mini"><p style="position: absolute; top: 0; right: 0; border: 0;">Fork me on GitHub</p></a>
+        <script>
+            // 0. Setup the UI
 
-    <script src="keyboard-input.js"></script>   <!-- imports initKeyboardInput() -->
-    <script src="webmidi-reader.js"></script>   <!-- imports initWebMidiReader() -->
-    <script src="launchkey-state.js"></script>  <!-- imports initLaunchkeyState() -->
-    <script src="render.js"></script>           <!-- imports initKeyboardRenderer() -->
-    <script src="lib/riffwave.js"></script>     <!-- imports RIFFWAVE -->
-    <script src="lib/sfxr.js"></script>         <!-- imports SoundEffect -->
-    <script src="lib/scope.js"></script>        <!-- imports Scope -->
-    <script src="sound-generator.js"></script>  <!-- imports initSoundGenerator() -->
-    <script src="synth.js"></script>            <!-- imports initSynth() -->
-    <script src="additive-synth.js"></script>   <!-- imports initAdditiveSynth() -->
-    <script src="fm-synth.js"></script>         <!-- imports initFMSynth() -->
-    <script src="oscilloscope.js"></script>     <!-- imports initOscilloscope() -->
-    <script src="note-player.js"></script>      <!-- imports initNotePlayer() -->
+            const keyboardDiv = document.getElementById("renderedKeyboard");
+            const keyboardUI = initKeyboardRenderer();
+            const renderKeyboardUI = (state) =>
+                (keyboardDiv.innerHTML = keyboardUI.renderHTML(state));
+            renderKeyboardUI({}); // render with initial state
 
-    <script>
-      // 0. Setup the UI
+            const patchNameDiv = document.getElementById("currentPatchName");
+            const onPatchChange = ({ name, type, description }) => {
+                patchNameDiv.innerHTML = `Patch / waveform: ${name || type}`;
+                if (description) {
+                    patchNameDiv.innerHTML += `<br><small>${description}</small>`;
+                }
+            };
 
-      const keyboardDiv = document.getElementById('renderedKeyboard');
-      const keyboardUI = initKeyboardRenderer();
-      const renderKeyboardUI = (state) => keyboardDiv.innerHTML = keyboardUI.renderHTML(state);
-      renderKeyboardUI({}); // render with initial state
+            // just to activate WebAudio after a user gesture
+            document.getElementById("run").onclick = function () {
+                // 1. Setup outputs
 
-      const patchNameDiv = document.getElementById('currentPatchName');
-      const onPatchChange = ({ name, type, description }) => {
-        patchNameDiv.innerHTML = `Patch / waveform: ${name || type}`;
-        if (description) {
-          patchNameDiv.innerHTML += `<br><small>${description}</small>`;
-        }
-      };
+                const audioContext = new (window.AudioContext ||
+                    window.webkitAudioContext)();
 
-      // just to activate WebAudio after a user gesture
-      document.getElementById('run').onclick = function() {
+                const oscilloscope = initOscilloscope({
+                    Scope,
+                    audioContext,
+                    canvas: document.querySelector("#osc1"),
+                });
 
-        // 1. Setup outputs
+                // Amplitude control for oscilloscope
+                const amplitudeControl =
+                    document.getElementById("amplitudeControl");
+                const amplitudeValue =
+                    document.getElementById("amplitudeValue");
 
-        const audioContext = new (window.AudioContext || window.webkitAudioContext);
-  
-        const oscilloscope = initOscilloscope({
-          Scope,
-          audioContext,
-          canvas: document.querySelector('#osc1')
-        });
-        
-        // Amplitude control for oscilloscope
-        const amplitudeControl = document.getElementById('amplitudeControl');
-        const amplitudeValue = document.getElementById('amplitudeValue');
-        
-        amplitudeControl.addEventListener('input', (e) => {
-          const amplitude = parseFloat(e.target.value);
-          oscilloscope.setAmplitude(amplitude);
-          amplitudeValue.textContent = amplitude + 'x';
-        });
-        
-        // Set initial amplitude
-        oscilloscope.setAmplitude(3);
-        
-        // Grid movement controls
-        const gridLeft = document.getElementById('gridLeft');
-        const gridRight = document.getElementById('gridRight');
-        const gridUp = document.getElementById('gridUp');
-        const gridDown = document.getElementById('gridDown');
-        const gridReset = document.getElementById('gridReset');
-        const gridPosition = document.getElementById('gridPosition');
-        
-        gridLeft.addEventListener('click', () => {
-          oscilloscope.moveGrid(-1, 0);
-          updateGridDisplay();
-        });
-        
-        gridRight.addEventListener('click', () => {
-          oscilloscope.moveGrid(1, 0);
-          updateGridDisplay();
-        });
-        
-        gridUp.addEventListener('click', () => {
-          oscilloscope.moveGrid(0, -1);
-          updateGridDisplay();
-        });
-        
-        gridDown.addEventListener('click', () => {
-          oscilloscope.moveGrid(0, 1);
-          updateGridDisplay();
-        });
-        
-        gridReset.addEventListener('click', () => {
-          oscilloscope.resetGrid();
-          updateGridDisplay();
-        });
-        
-        function updateGridDisplay() {
-          const pos = oscilloscope.getGridPosition();
-          gridPosition.textContent = `H: ${pos.timeMs.toFixed(1)}ms, V: ${pos.amplitude.toFixed(1)}`;
-        }
-        
-        updateGridDisplay();
-        
-        // Time resolution control
-        const timeResolutionControl = document.getElementById('timeResolutionControl');
-        
-        timeResolutionControl.addEventListener('change', (e) => {
-          const resolution = parseFloat(e.target.value);
-          oscilloscope.setTimeResolution(resolution);
-        });
-        
-        // Set initial time resolution
-        oscilloscope.setTimeResolution(5);
-        
-        // Trigger controls
-        const triggerLevelControl = document.getElementById('triggerLevelControl');
-        const triggerLevelValue = document.getElementById('triggerLevelValue');
-        const triggerModeControl = document.getElementById('triggerModeControl');
-        
-        triggerLevelControl.addEventListener('input', (e) => {
-          const level = parseFloat(e.target.value);
-          oscilloscope.setTriggerLevel(level);
-          triggerLevelValue.textContent = level.toFixed(2);
-        });
-        
-        triggerModeControl.addEventListener('change', (e) => {
-          oscilloscope.setTriggerMode(e.target.value);
-        });
-        
-        // Set initial trigger settings
-        oscilloscope.setTriggerLevel(0);
-        oscilloscope.setTriggerMode('auto');
-        
-        // Synth gain control
-        const synthGainControl = document.getElementById('synthGainControl');
-        const synthGainValue = document.getElementById('synthGainValue');
-        let currentSynthGain = 1.0;
-        
-        synthGainControl.addEventListener('input', (e) => {
-          currentSynthGain = parseFloat(e.target.value);
-          synthGainValue.textContent = currentSynthGain.toFixed(1) + 'x';
-        });
-        
-        const synth = initSynth({ audioContext, onPatchChange, getSynthGain: () => currentSynthGain }); // creates an audio context for one "channel"
-        const additiveSynth = initAdditiveSynth({ audioContext, onPatchChange, getSynthGain: () => currentSynthGain });
-        const fmSynth = initFMSynth({ audioContext, onPatchChange, getSynthGain: () => currentSynthGain });
-        const soundGenerator = initSoundGenerator({ SoundEffect });
-        
-        // Synth selector functionality
-        const synthSelector = document.getElementById('synthSelector');
-        let currentSynthType = 'additive'; // Default to additive for educational purposes
-        
-        // Create harmonic controls
-        function createHarmonicControls() {
-          const harmonicControls = document.getElementById('harmonicControls');
-          const harmonicSliders = document.getElementById('harmonicSliders');
-          
-          // Create sliders for each harmonic
-          for (let i = 0; i < additiveSynth.NUM_HARMONICS; i++) {
-            const controlDiv = document.createElement('div');
-            controlDiv.className = 'harmonic-control';
-            
-            const slider = document.createElement('input');
-            slider.type = 'range';
-            slider.className = 'harmonic-slider';
-            slider.min = '0';
-            slider.max = '100';
-            slider.value = '0';
-            slider.orient = 'vertical'; // For Firefox
-            
-            const label = document.createElement('div');
-            label.className = 'harmonic-label';
-            label.textContent = `H${i + 1}`;
-            
-            const valueDisplay = document.createElement('div');
-            valueDisplay.className = 'harmonic-value';
-            valueDisplay.textContent = '0%';
-            
-            // Update harmonic when slider changes
-            slider.addEventListener('input', (e) => {
-              const amplitude = parseFloat(e.target.value) / 100;
-              additiveSynth.setHarmonic(i, amplitude);
-              valueDisplay.textContent = Math.round(amplitude * 100) + '%';
-            });
-            
-            controlDiv.appendChild(slider);
-            controlDiv.appendChild(label);
-            controlDiv.appendChild(valueDisplay);
-            harmonicSliders.appendChild(controlDiv);
-          }
-          
-          // Function to update sliders when preset changes
-          window.updateHarmonicSliders = function(harmonics) {
-            const sliders = harmonicSliders.querySelectorAll('.harmonic-slider');
-            const valueDisplays = harmonicSliders.querySelectorAll('.harmonic-value');
-            
-            harmonics.forEach((amplitude, i) => {
-              if (sliders[i]) {
-                sliders[i].value = Math.round(amplitude * 100);
-                valueDisplays[i].textContent = Math.round(amplitude * 100) + '%';
-              }
-            });
-          };
-        }
-        
-        createHarmonicControls();
-        
-        // Create FM controls
-        function createFMControls() {
-          const carrierRatioControl = document.getElementById('carrierRatioControl');
-          const carrierRatioValue = document.getElementById('carrierRatioValue');
-          const modulatorRatioControl = document.getElementById('modulatorRatioControl');
-          const modulatorRatioValue = document.getElementById('modulatorRatioValue');
-          const modulationIndexControl = document.getElementById('modulationIndexControl');
-          const modulationIndexValue = document.getElementById('modulationIndexValue');
-          
-          carrierRatioControl.addEventListener('input', (e) => {
-            const ratio = parseFloat(e.target.value);
-            fmSynth.setCarrierRatio(ratio);
-            carrierRatioValue.textContent = ratio.toFixed(1);
-          });
-          
-          modulatorRatioControl.addEventListener('input', (e) => {
-            const ratio = parseFloat(e.target.value);
-            fmSynth.setModulatorRatio(ratio);
-            modulatorRatioValue.textContent = ratio.toFixed(1);
-          });
-          
-          modulationIndexControl.addEventListener('input', (e) => {
-            const index = parseFloat(e.target.value);
-            fmSynth.setModulationIndex(index);
-            modulationIndexValue.textContent = index.toFixed(1);
-          });
-          
-          // Function to update FM controls when preset changes
-          window.updateFMControls = function(params) {
-            carrierRatioControl.value = params.carrierRatio;
-            carrierRatioValue.textContent = params.carrierRatio.toFixed(1);
-            modulatorRatioControl.value = params.modulatorRatio;
-            modulatorRatioValue.textContent = params.modulatorRatio.toFixed(1);
-            modulationIndexControl.value = params.modulationIndex;
-            modulationIndexValue.textContent = params.modulationIndex.toFixed(1);
-          };
-        }
-        
-        createFMControls();
-        
-        const notePlayer = initNotePlayer({ 
-          synth, 
-          additiveSynth, 
-          fmSynth,
-          soundGenerator, 
-          oscilloscope,
-          getCurrentSynthType: () => currentSynthType
-        });
-        
-        function updateSynthDisplay() {
-          const harmonicControls = document.getElementById('harmonicControls');
-          const fmControls = document.getElementById('fmControls');
-          
-          if (currentSynthType === 'additive') {
-            harmonicControls.style.display = 'block';
-            fmControls.style.display = 'none';
-            const presetInfo = additiveSynth.getPresetInfo();
-            onPatchChange(presetInfo);
-            updateHarmonicSliders(presetInfo.harmonics);
-          } else if (currentSynthType === 'fm') {
-            harmonicControls.style.display = 'none';
-            fmControls.style.display = 'block';
-            const presetInfo = fmSynth.getPresetInfo();
-            onPatchChange(presetInfo);
-            updateFMControls(presetInfo.params || presetInfo);
-          } else {
-            harmonicControls.style.display = 'none';
-            fmControls.style.display = 'none';
-            onPatchChange({ name: 'Basic Synth', type: 'waveform' });
-          }
-        }
-        
-        synthSelector.addEventListener('change', (e) => {
-          currentSynthType = e.target.value;
-          console.log('Switched to:', currentSynthType);
-          updateSynthDisplay();
-        });
-        
-        // Initialize with additive synth display
-        updateSynthDisplay();
+                amplitudeControl.addEventListener("input", (e) => {
+                    const amplitude = parseFloat(e.target.value);
+                    oscilloscope.setAmplitude(amplitude);
+                    amplitudeValue.textContent = amplitude + "x";
+                });
 
-        // 2. Pipe MIDI messages to synth and UI
-        
-        const keyboardState = initLaunchkeyState();
+                // Set initial amplitude
+                oscilloscope.setAmplitude(3);
 
-        function handleParsedMidiMessage(message) {
-          renderKeyboardUI(keyboardState.mutateFromParsedMidiMessage(message));
-          if (message.note) {
-            notePlayer.playParsedMidiMessage(message);
-          }
-        }
+                // Grid movement controls
+                const gridLeft = document.getElementById("gridLeft");
+                const gridRight = document.getElementById("gridRight");
+                const gridUp = document.getElementById("gridUp");
+                const gridDown = document.getElementById("gridDown");
+                const gridReset = document.getElementById("gridReset");
+                const gridPosition = document.getElementById("gridPosition");
 
-        // 3. Setup and plug inputs
+                gridLeft.addEventListener("click", () => {
+                    oscilloscope.moveGrid(-1, 0);
+                    updateGridDisplay();
+                });
 
-        const computerKeyboard = initKeyboardInput();
-        const midiKeyboard = initWebMidiReader();
+                gridRight.addEventListener("click", () => {
+                    oscilloscope.moveGrid(1, 0);
+                    updateGridDisplay();
+                });
 
-        computerKeyboard.onKeyEvents((parsedMidiMessage) => handleParsedMidiMessage(parsedMidiMessage));
+                gridUp.addEventListener("click", () => {
+                    oscilloscope.moveGrid(0, -1);
+                    updateGridDisplay();
+                });
 
-        midiKeyboard.onMidiMessage((midiMessage) =>
-          handleParsedMidiMessage(midiKeyboard.parseMidiMessage(midiMessage))
-        );
+                gridDown.addEventListener("click", () => {
+                    oscilloscope.moveGrid(0, 1);
+                    updateGridDisplay();
+                });
 
-        // 4. Remove the startup modal
+                gridReset.addEventListener("click", () => {
+                    oscilloscope.resetGrid();
+                    updateGridDisplay();
+                });
 
-        const startupModal = document.getElementById('startupModal');
-        startupModal.parentNode.removeChild(startupModal);
+                function updateGridDisplay() {
+                    const pos = oscilloscope.getGridPosition();
+                    gridPosition.textContent = `H: ${pos.timeMs.toFixed(1)}ms, V: ${pos.amplitude.toFixed(1)}`;
+                }
 
-      };
-    </script>
-  </body>
+                updateGridDisplay();
+
+                // Time resolution control
+                const timeResolutionControl = document.getElementById(
+                    "timeResolutionControl",
+                );
+
+                timeResolutionControl.addEventListener("change", (e) => {
+                    const resolution = parseFloat(e.target.value);
+                    console.log("Time resolution changed to:", resolution);
+                    oscilloscope.setTimeResolution(resolution);
+                    console.log("setTimeResolution called");
+                });
+
+                // Set initial time resolution
+                oscilloscope.setTimeResolution(5);
+
+                // Trigger controls
+                const triggerLevelControl = document.getElementById(
+                    "triggerLevelControl",
+                );
+                const triggerLevelValue =
+                    document.getElementById("triggerLevelValue");
+                const triggerModeControl =
+                    document.getElementById("triggerModeControl");
+
+                triggerLevelControl.addEventListener("input", (e) => {
+                    const level = parseFloat(e.target.value);
+                    oscilloscope.setTriggerLevel(level);
+                    triggerLevelValue.textContent = level.toFixed(2);
+                });
+
+                triggerModeControl.addEventListener("change", (e) => {
+                    oscilloscope.setTriggerMode(e.target.value);
+                });
+
+                // Set initial trigger settings
+                oscilloscope.setTriggerLevel(0);
+                oscilloscope.setTriggerMode("auto");
+
+                // Synth gain control
+                const synthGainControl =
+                    document.getElementById("synthGainControl");
+                const synthGainValue =
+                    document.getElementById("synthGainValue");
+                let currentSynthGain = 1.0;
+
+                synthGainControl.addEventListener("input", (e) => {
+                    currentSynthGain = parseFloat(e.target.value);
+                    synthGainValue.textContent =
+                        currentSynthGain.toFixed(1) + "x";
+                });
+
+                const synth = initSynth({
+                    audioContext,
+                    onPatchChange,
+                    getSynthGain: () => currentSynthGain,
+                }); // creates an audio context for one "channel"
+                const additiveSynth = initAdditiveSynth({
+                    audioContext,
+                    onPatchChange,
+                    getSynthGain: () => currentSynthGain,
+                });
+                const fmSynth = initFMSynth({
+                    audioContext,
+                    onPatchChange,
+                    getSynthGain: () => currentSynthGain,
+                });
+                const soundGenerator = initSoundGenerator({ SoundEffect });
+
+                // Synth selector functionality
+                const synthSelector = document.getElementById("synthSelector");
+                let currentSynthType = "additive"; // Default to additive for educational purposes
+
+                // Create harmonic controls
+                function createHarmonicControls() {
+                    const harmonicControls =
+                        document.getElementById("harmonicControls");
+                    const harmonicSliders =
+                        document.getElementById("harmonicSliders");
+
+                    // Create sliders for each harmonic
+                    for (let i = 0; i < additiveSynth.NUM_HARMONICS; i++) {
+                        const controlDiv = document.createElement("div");
+                        controlDiv.className = "harmonic-control";
+
+                        const slider = document.createElement("input");
+                        slider.type = "range";
+                        slider.className = "harmonic-slider";
+                        slider.min = "0";
+                        slider.max = "100";
+                        slider.value = "0";
+                        slider.orient = "vertical"; // For Firefox
+
+                        const label = document.createElement("div");
+                        label.className = "harmonic-label";
+                        label.textContent = `H${i + 1}`;
+
+                        const valueDisplay = document.createElement("div");
+                        valueDisplay.className = "harmonic-value";
+                        valueDisplay.textContent = "0%";
+
+                        // Update harmonic when slider changes
+                        slider.addEventListener("input", (e) => {
+                            const amplitude = parseFloat(e.target.value) / 100;
+                            additiveSynth.setHarmonic(i, amplitude);
+                            valueDisplay.textContent =
+                                Math.round(amplitude * 100) + "%";
+                        });
+
+                        controlDiv.appendChild(slider);
+                        controlDiv.appendChild(label);
+                        controlDiv.appendChild(valueDisplay);
+                        harmonicSliders.appendChild(controlDiv);
+                    }
+
+                    // Function to update sliders when preset changes
+                    window.updateHarmonicSliders = function (harmonics) {
+                        const sliders =
+                            harmonicSliders.querySelectorAll(
+                                ".harmonic-slider",
+                            );
+                        const valueDisplays =
+                            harmonicSliders.querySelectorAll(".harmonic-value");
+
+                        harmonics.forEach((amplitude, i) => {
+                            if (sliders[i]) {
+                                sliders[i].value = Math.round(amplitude * 100);
+                                valueDisplays[i].textContent =
+                                    Math.round(amplitude * 100) + "%";
+                            }
+                        });
+                    };
+                }
+
+                createHarmonicControls();
+
+                // Create FM controls
+                function createFMControls() {
+                    const carrierRatioControl = document.getElementById(
+                        "carrierRatioControl",
+                    );
+                    const carrierRatioValue =
+                        document.getElementById("carrierRatioValue");
+                    const modulatorRatioControl = document.getElementById(
+                        "modulatorRatioControl",
+                    );
+                    const modulatorRatioValue = document.getElementById(
+                        "modulatorRatioValue",
+                    );
+                    const modulationIndexControl = document.getElementById(
+                        "modulationIndexControl",
+                    );
+                    const modulationIndexValue = document.getElementById(
+                        "modulationIndexValue",
+                    );
+
+                    carrierRatioControl.addEventListener("input", (e) => {
+                        const ratio = parseFloat(e.target.value);
+                        fmSynth.setCarrierRatio(ratio);
+                        carrierRatioValue.textContent = ratio.toFixed(1);
+                    });
+
+                    modulatorRatioControl.addEventListener("input", (e) => {
+                        const ratio = parseFloat(e.target.value);
+                        fmSynth.setModulatorRatio(ratio);
+                        modulatorRatioValue.textContent = ratio.toFixed(1);
+                    });
+
+                    modulationIndexControl.addEventListener("input", (e) => {
+                        const index = parseFloat(e.target.value);
+                        fmSynth.setModulationIndex(index);
+                        modulationIndexValue.textContent = index.toFixed(1);
+                    });
+
+                    // Function to update FM controls when preset changes
+                    window.updateFMControls = function (params) {
+                        carrierRatioControl.value = params.carrierRatio;
+                        carrierRatioValue.textContent =
+                            params.carrierRatio.toFixed(1);
+                        modulatorRatioControl.value = params.modulatorRatio;
+                        modulatorRatioValue.textContent =
+                            params.modulatorRatio.toFixed(1);
+                        modulationIndexControl.value = params.modulationIndex;
+                        modulationIndexValue.textContent =
+                            params.modulationIndex.toFixed(1);
+                    };
+                }
+
+                createFMControls();
+
+                const notePlayer = initNotePlayer({
+                    synth,
+                    additiveSynth,
+                    fmSynth,
+                    soundGenerator,
+                    oscilloscope,
+                    getCurrentSynthType: () => currentSynthType,
+                });
+
+                function updateSynthDisplay() {
+                    const harmonicControls =
+                        document.getElementById("harmonicControls");
+                    const fmControls = document.getElementById("fmControls");
+
+                    if (currentSynthType === "additive") {
+                        harmonicControls.style.display = "block";
+                        fmControls.style.display = "none";
+                        const presetInfo = additiveSynth.getPresetInfo();
+                        onPatchChange(presetInfo);
+                        updateHarmonicSliders(presetInfo.harmonics);
+                    } else if (currentSynthType === "fm") {
+                        harmonicControls.style.display = "none";
+                        fmControls.style.display = "block";
+                        const presetInfo = fmSynth.getPresetInfo();
+                        onPatchChange(presetInfo);
+                        updateFMControls(presetInfo.params || presetInfo);
+                    } else {
+                        harmonicControls.style.display = "none";
+                        fmControls.style.display = "none";
+                        onPatchChange({
+                            name: "Basic Synth",
+                            type: "waveform",
+                        });
+                    }
+                }
+
+                synthSelector.addEventListener("change", (e) => {
+                    currentSynthType = e.target.value;
+                    console.log("Switched to:", currentSynthType);
+                    updateSynthDisplay();
+                });
+
+                // Initialize with additive synth display
+                updateSynthDisplay();
+
+                // 2. Pipe MIDI messages to synth and UI
+
+                const keyboardState = initLaunchkeyState();
+
+                function handleParsedMidiMessage(message) {
+                    renderKeyboardUI(
+                        keyboardState.mutateFromParsedMidiMessage(message),
+                    );
+                    if (message.note) {
+                        notePlayer.playParsedMidiMessage(message);
+                    }
+                }
+
+                // 3. Setup and plug inputs
+
+                const computerKeyboard = initKeyboardInput();
+                const midiKeyboard = initWebMidiReader();
+
+                computerKeyboard.onKeyEvents((parsedMidiMessage) =>
+                    handleParsedMidiMessage(parsedMidiMessage),
+                );
+
+                midiKeyboard.onMidiMessage((midiMessage) =>
+                    handleParsedMidiMessage(
+                        midiKeyboard.parseMidiMessage(midiMessage),
+                    ),
+                );
+
+                // 4. Remove the startup modal
+
+                const startupModal = document.getElementById("startupModal");
+                startupModal.parentNode.removeChild(startupModal);
+            };
+        </script>
+    </body>
 </html>

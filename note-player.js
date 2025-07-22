@@ -60,6 +60,9 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
     const { stop } = activeNotes[note] || {};
     if (typeof stop === 'function') stop();  
     delete activeNotes[note];
+    
+    // Remove frequency from oscilloscope
+    oscilloscope.removeFrequency(note);
   }
 
   function playNote({ note, channel, velocity }) {
@@ -84,6 +87,10 @@ function initNotePlayer({ synth, additiveSynth, fmSynth, soundGenerator, oscillo
       
       const { oscillator, gainNode } = selectedSynth.playNote({ note: NOTES[noteIdx], octave, velocity });
 
+      // Calculate frequency for oscilloscope display
+      const noteFrequency = 440 * Math.pow(2, (note - 69) / 12); // A4 = 440Hz, MIDI note 69
+      oscilloscope.addFrequency(noteFrequency, note);
+      
       oscilloscope.connect(gainNode);
 
       function stop() {
