@@ -177,7 +177,10 @@ function initFMSynth({ audioContext, onPatchChange, getSynthGain }) {
 
   function playNote({ note, octave, velocity }) {
     console.log('fm-synth.playNote', { note, octave, velocity });
-    const freq = 440 * Math.pow(Math.pow(2, 1 / 12), ((octave - 4) * 12) + NOTES.indexOf(note));
+    // Convert note name + octave to MIDI note number, then to frequency
+    // MIDI note 69 = A4 = 440Hz, MIDI note 60 = C4
+    const midiNoteNumber = (octave + 1) * 12 + NOTES.indexOf(note);
+    const freq = 440 * Math.pow(2, (midiNoteNumber - 69) / 12);
     return playTone({ freq, velocity });
   }
 
