@@ -194,6 +194,38 @@
         </div>
 
         <div
+            id="octaveControls"
+            style="
+                margin: 20px;
+                padding: 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            "
+        >
+            <h4>Keyboard Octave Controls</h4>
+            <div style="margin-bottom: 10px">
+                <label for="octaveControl">Octave: </label>
+                <button id="octaveDown">-</button>
+                <input
+                    type="range"
+                    id="octaveControl"
+                    min="1"
+                    max="8"
+                    value="2"
+                    step="1"
+                    style="width: 200px; margin: 0 10px"
+                />
+                <button id="octaveUp">+</button>
+                <span id="octaveValue">2</span>
+            </div>
+            <div style="font-size: 12px; color: #666">
+                Use +/- keys or controls above to change octave. Current range:
+                C2-B2
+            </div>
+        </div>
+
+        <div
             id="harmonicControls"
             style="
                 margin: 20px;
@@ -657,11 +689,47 @@
                 // 3. Setup and plug inputs
 
                 const computerKeyboard = initKeyboardInput();
-                const midiKeyboard = initWebMidiReader();
-
                 computerKeyboard.onKeyEvents((parsedMidiMessage) =>
                     handleParsedMidiMessage(parsedMidiMessage),
                 );
+
+                // Setup octave controls
+                const octaveControl = document.getElementById("octaveControl");
+                const octaveUp = document.getElementById("octaveUp");
+                const octaveDown = document.getElementById("octaveDown");
+                const octaveValue = document.getElementById("octaveValue");
+
+                function updateOctaveDisplay(octave) {
+                    octaveValue.textContent = octave;
+                    octaveControl.value = octave;
+                    const noteRange = `C${octave}-B${octave}`;
+                    document.querySelector(
+                        "#octaveControls div:last-child",
+                    ).textContent =
+                        `Use +/- keys or controls above to change octave. Current range: ${noteRange}`;
+                }
+
+                // Set up octave change callback
+                computerKeyboard.setOctaveChangeCallback(updateOctaveDisplay);
+
+                octaveControl.addEventListener("input", (e) => {
+                    const octave = parseInt(e.target.value);
+                    computerKeyboard.setOctave(octave);
+                    updateOctaveDisplay(octave);
+                });
+
+                octaveUp.addEventListener("click", () => {
+                    computerKeyboard.incrementOctave(1);
+                });
+
+                octaveDown.addEventListener("click", () => {
+                    computerKeyboard.incrementOctave(-1);
+                });
+
+                // Initialize octave display
+                updateOctaveDisplay(computerKeyboard.getCurrentOctave());
+
+                const midiKeyboard = initWebMidiReader();
 
                 midiKeyboard.onMidiMessage((midiMessage) =>
                     handleParsedMidiMessage(
