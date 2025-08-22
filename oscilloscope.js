@@ -1,6 +1,12 @@
 // Renders an oscilloscope from a GainNode, using the Scope dependency.
 
-function initOscilloscope({ Scope, audioContext, canvas }) {
+function initOscilloscope({
+  Scope,
+  audioContext,
+  canvas,
+  getCurrentSynthType,
+  getFMSynth,
+}) {
   const scope = new Scope.ScopeSampler(audioContext);
   const input = scope.getInput();
 
@@ -112,20 +118,50 @@ function initOscilloscope({ Scope, audioContext, canvas }) {
         let sampleValue = 0;
 
         if (Object.keys(notes).length > 0) {
-          // Generate mathematically perfect waveform with harmonics
-          for (const noteId in notes) {
-            const noteData = notes[noteId];
-            const fundamentalFreq = noteData.frequency;
-            const harmonics = noteData.harmonics || [1]; // fallback to fundamental only
-            const velocity = noteData.velocity || 127;
+          const synthType = getCurrentSynthType
+            ? getCurrentSynthType()
+            : "additive";
 
-            // Generate all harmonics for this note
-            for (let h = 0; h < harmonics.length; h++) {
-              if (harmonics[h] > 0) {
-                const harmonicFreq = fundamentalFreq * (h + 1);
-                const harmonicAmp = harmonics[h] * (velocity / 127);
-                sampleValue +=
-                  harmonicAmp * Math.sin(2 * Math.PI * harmonicFreq * time);
+          if (synthType === "fm" && getFMSynth) {
+            // Generate FM synthesis waveform
+            const fmSynth = getFMSynth();
+            const fmParams = fmSynth.getParams();
+
+            for (const noteId in notes) {
+              const noteData = notes[noteId];
+              const fundamentalFreq = noteData.frequency;
+              const velocity = noteData.velocity || 127;
+
+              // Calculate FM frequencies
+              const carrierFreq = fundamentalFreq * fmParams.carrierRatio;
+              const modulatorFreq = fundamentalFreq * fmParams.modulatorRatio;
+              const modulationIndex = fmParams.modulationIndex;
+
+              // Generate FM waveform: sin(2π*fc*t + I*sin(2π*fm*t))
+              const modulation =
+                modulationIndex * Math.sin(2 * Math.PI * modulatorFreq * time);
+              const fmSample = Math.sin(
+                2 * Math.PI * carrierFreq * time + modulation,
+              );
+
+              sampleValue += fmSample * (velocity / 127);
+            }
+          } else {
+            // Generate additive synthesis waveform with harmonics
+            for (const noteId in notes) {
+              const noteData = notes[noteId];
+              const fundamentalFreq = noteData.frequency;
+              const harmonics = noteData.harmonics || [1]; // fallback to fundamental only
+              const velocity = noteData.velocity || 127;
+
+              // Generate all harmonics for this note
+              for (let h = 0; h < harmonics.length; h++) {
+                if (harmonics[h] > 0) {
+                  const harmonicFreq = fundamentalFreq * (h + 1);
+                  const harmonicAmp = harmonics[h] * (velocity / 127);
+                  sampleValue +=
+                    harmonicAmp * Math.sin(2 * Math.PI * harmonicFreq * time);
+                }
               }
             }
           }
@@ -191,15 +227,21 @@ function initOscilloscope({ Scope, audioContext, canvas }) {
 
     const activeNotes = this.activeNotes || {};
     const noteCount = Object.keys(activeNotes).length;
+    const synthType = getCurrentSynthType ? getCurrentSynthType() : "additive";
 
     if (noteCount > 0) {
       if (noteCount === 1) {
         const noteData = Object.values(activeNotes)[0];
-        this.ctx.fillText(
-          `${noteData.frequency.toFixed(1)} Hz`,
-          this.width - 120,
-          25,
-        );
+        let displayText = `${noteData.frequency.toFixed(1)} Hz`;
+
+        // Add synthesis type indicator
+        if (synthType === "fm") {
+          displayText += " (FM)";
+        } else if (synthType === "additive") {
+          displayText += " (Add)";
+        }
+
+        this.ctx.fillText(displayText, this.width - 140, 25);
 
         // Show harmonic count if using additive synthesis
         if (noteData.harmonics && noteData.harmonics.length > 1) {

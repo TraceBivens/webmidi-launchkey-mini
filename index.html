@@ -350,10 +350,49 @@
                 const audioContext = new (window.AudioContext ||
                     window.webkitAudioContext)();
 
+                // Oscilloscope will be initialized after synth variables are defined
+
+                // Synth gain control
+                const synthGainControl =
+                    document.getElementById("synthGainControl");
+                const synthGainValue =
+                    document.getElementById("synthGainValue");
+                let currentSynthGain = 1.0;
+
+                synthGainControl.addEventListener("input", (e) => {
+                    currentSynthGain = parseFloat(e.target.value);
+                    synthGainValue.textContent =
+                        currentSynthGain.toFixed(1) + "x";
+                });
+
+                const synth = initSynth({
+                    audioContext,
+                    onPatchChange,
+                    getSynthGain: () => currentSynthGain,
+                }); // creates an audio context for one "channel"
+                const additiveSynth = initAdditiveSynth({
+                    audioContext,
+                    onPatchChange,
+                    getSynthGain: () => currentSynthGain,
+                });
+                const fmSynth = initFMSynth({
+                    audioContext,
+                    onPatchChange,
+                    getSynthGain: () => currentSynthGain,
+                });
+                const soundGenerator = initSoundGenerator({ SoundEffect });
+
+                // Synth selector functionality
+                const synthSelector = document.getElementById("synthSelector");
+                let currentSynthType = "additive"; // Default to additive for educational purposes
+
+                // Initialize oscilloscope now that synth variables are defined
                 const oscilloscope = initOscilloscope({
                     Scope,
                     audioContext,
                     canvas: document.querySelector("#osc1"),
+                    getCurrentSynthType: () => currentSynthType,
+                    getFMSynth: () => fmSynth,
                 });
 
                 // Amplitude control for oscilloscope
@@ -448,40 +487,6 @@
                 // Set initial trigger settings
                 oscilloscope.setTriggerLevel(0);
                 oscilloscope.setTriggerMode("auto");
-
-                // Synth gain control
-                const synthGainControl =
-                    document.getElementById("synthGainControl");
-                const synthGainValue =
-                    document.getElementById("synthGainValue");
-                let currentSynthGain = 1.0;
-
-                synthGainControl.addEventListener("input", (e) => {
-                    currentSynthGain = parseFloat(e.target.value);
-                    synthGainValue.textContent =
-                        currentSynthGain.toFixed(1) + "x";
-                });
-
-                const synth = initSynth({
-                    audioContext,
-                    onPatchChange,
-                    getSynthGain: () => currentSynthGain,
-                }); // creates an audio context for one "channel"
-                const additiveSynth = initAdditiveSynth({
-                    audioContext,
-                    onPatchChange,
-                    getSynthGain: () => currentSynthGain,
-                });
-                const fmSynth = initFMSynth({
-                    audioContext,
-                    onPatchChange,
-                    getSynthGain: () => currentSynthGain,
-                });
-                const soundGenerator = initSoundGenerator({ SoundEffect });
-
-                // Synth selector functionality
-                const synthSelector = document.getElementById("synthSelector");
-                let currentSynthType = "additive"; // Default to additive for educational purposes
 
                 // Create harmonic controls
                 function createHarmonicControls() {
