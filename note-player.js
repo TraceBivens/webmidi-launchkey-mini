@@ -91,7 +91,7 @@ function initNotePlayer({
     } else {
       // white and black keys - use selected synthesizer
       stopNote({ note, channel });
-      const octave = Math.floor(note / 12);
+      const octave = Math.floor(note / 12) - 1;
       const noteIdx = note % 12;
 
       const synthType = getCurrentSynthType();

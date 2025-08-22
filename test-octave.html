@@ -1,0 +1,186 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Octave Control Test</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            .controls {
+                margin: 20px 0;
+                padding: 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+            button {
+                margin: 5px;
+                padding: 5px 10px;
+            }
+            #status {
+                margin-top: 10px;
+                padding: 10px;
+                background-color: #f0f0f0;
+                border-radius: 3px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Octave Control Test</h1>
+
+        <div class="controls">
+            <h3>Octave Controls</h3>
+            <button id="octaveDown">Octave -</button>
+            <input
+                type="range"
+                id="octaveSlider"
+                min="1"
+                max="8"
+                value="2"
+                style="width: 200px"
+            />
+            <button id="octaveUp">Octave +</button>
+            <span id="octaveDisplay">2</span>
+        </div>
+
+        <div class="controls">
+            <h3>Keyboard Test</h3>
+            <p>Press keyboard keys Z, X, C, V, B, N, M to test notes</p>
+            <p>Press +/- keys to test octave changes</p>
+            <button id="startTest">Start Audio Test</button>
+        </div>
+
+        <div id="status">
+            <h4>Status:</h4>
+            <div id="currentOctave">Current Octave: 2</div>
+            <div id="noteRange">Note Range: C2-B2</div>
+            <div id="lastNote">Last Note: None</div>
+            <div id="expectedMidi">Expected MIDI for 'z': 36 (C2)</div>
+            <div id="actualMidi">Actual MIDI: None</div>
+        </div>
+
+        <script src="keyboard-input.js"></script>
+        <script>
+            let audioContext;
+            let keyboardInput;
+
+            document.getElementById("startTest").onclick = function () {
+                // Initialize audio context
+                audioContext = new (window.AudioContext ||
+                    window.webkitAudioContext)();
+
+                // Initialize keyboard input
+                keyboardInput = initKeyboardInput();
+
+                // Set up octave change callback
+                keyboardInput.setOctaveChangeCallback(function (octave) {
+                    updateOctaveDisplay(octave);
+                });
+
+                // Listen to keyboard events
+                keyboardInput.onKeyEvents(function (message) {
+                    console.log("MIDI Message:", message);
+                    document.getElementById("lastNote").textContent =
+                        `Last Note: ${message.note} (${message.command === 9 ? "ON" : "OFF"})`;
+
+                    if (message.command === 9 && message.note) {
+                        document.getElementById("actualMidi").textContent =
+                            `Actual MIDI: ${message.note} (${midiNoteToNoteName(message.note)})`;
+                        // Play a simple beep for testing
+                        playBeep(midiNoteToFrequency(message.note));
+                    }
+                });
+
+                // Set up UI controls
+                setupUIControls();
+
+                // Initialize display
+                updateOctaveDisplay(keyboardInput.getCurrentOctave());
+
+                this.textContent = "Audio Test Active";
+                this.disabled = true;
+            };
+
+            function setupUIControls() {
+                const octaveSlider = document.getElementById("octaveSlider");
+                const octaveUp = document.getElementById("octaveUp");
+                const octaveDown = document.getElementById("octaveDown");
+
+                octaveSlider.addEventListener("input", function (e) {
+                    const octave = parseInt(e.target.value);
+                    keyboardInput.setOctave(octave);
+                    updateOctaveDisplay(octave);
+                });
+
+                octaveUp.addEventListener("click", function () {
+                    keyboardInput.incrementOctave(1);
+                });
+
+                octaveDown.addEventListener("click", function () {
+                    keyboardInput.incrementOctave(-1);
+                });
+            }
+
+            function updateOctaveDisplay(octave) {
+                document.getElementById("octaveDisplay").textContent = octave;
+                document.getElementById("octaveSlider").value = octave;
+                document.getElementById("currentOctave").textContent =
+                    `Current Octave: ${octave}`;
+                document.getElementById("noteRange").textContent =
+                    `Note Range: C${octave}-B${octave}`;
+
+                // Calculate expected MIDI note for 'z' key (C in selected octave)
+                const expectedMidi = (octave + 1) * 12; // C in the selected octave
+                document.getElementById("expectedMidi").textContent =
+                    `Expected MIDI for 'z': ${expectedMidi} (${midiNoteToNoteName(expectedMidi)})`;
+            }
+
+            function midiNoteToFrequency(midiNote) {
+                return 440 * Math.pow(2, (midiNote - 69) / 12);
+            }
+
+            function midiNoteToNoteName(midiNote) {
+                const notes = [
+                    "C",
+                    "C#",
+                    "D",
+                    "D#",
+                    "E",
+                    "F",
+                    "F#",
+                    "G",
+                    "G#",
+                    "A",
+                    "A#",
+                    "B",
+                ];
+                const octave = Math.floor(midiNote / 12) - 1;
+                const noteIndex = midiNote % 12;
+                return notes[noteIndex] + octave;
+            }
+
+            function playBeep(frequency) {
+                if (!audioContext) return;
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.frequency.value = frequency;
+                oscillator.type = "sine";
+
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(
+                    0.01,
+                    audioContext.currentTime + 0.5,
+                );
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+        </script>
+    </body>
+</html>
